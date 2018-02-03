@@ -3,6 +3,7 @@ import threading
 from random import randint
 import pickle
 
+#ffefefe
 # create a socket object
 
 class client(threading.Thread):
