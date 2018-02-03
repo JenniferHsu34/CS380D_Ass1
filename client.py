@@ -43,7 +43,6 @@ class client(threading.Thread):
     def run(self, status, arg0=None, arg1=None):
         if status == "put":
             self.put(arg0, arg1)
-            print("put")
         elif status == "get":
             self.get(arg0)
         elif status == "break":
@@ -54,5 +53,5 @@ class client(threading.Thread):
 
 
     def printError(self):
-        print (self.cid)
+        print(self.cid)
 
