@@ -7,7 +7,7 @@ import pickle
 ##fffff
 #ffefefe
 # create a socket object
-
+#######
 class client(threading.Thread):
 
     def __init__(self, cid, cport, sport):
