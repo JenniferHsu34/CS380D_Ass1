@@ -4,11 +4,6 @@ from random import randint
 import pickle
 
 
-##fffff
-#ffefefe
-# create a socket object
-#######
-# changeServer (sport) : change socket's connect
 class client(threading.Thread):
 
     def __init__(self, cid, cport, sport):
@@ -27,6 +22,8 @@ class client(threading.Thread):
         print(cid, "client  ", self.sport)
         self.s.connect((self.host, self.sport))
 
+    def get(self, key):
+        return 0
 
     def put(self, key, value):
         insert1 = {key: value}
@@ -34,9 +31,7 @@ class client(threading.Thread):
 
     def connect(self, sport):
         self.sport = sport
-
         self.s.close()
-
         self.s = socket.socket()
         self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.s.bind(self.addr)
@@ -45,13 +40,19 @@ class client(threading.Thread):
     def close(self):
         self.s.close()
 
-    def run(self):
+    def run(self, status, arg0=None, arg1=None):
+        if status == "put":
+            self.put(arg0, arg1)
+            print("put")
+        elif status == "get":
+            self.get(arg0)
+        elif status == "break":
+            self.close()
+        elif status == "connect":
+            self.connect(arg0)
+        print("client", self.cid, status)
 
-        for i in range(1):
-            self.put(self.cid,1)
-        self.s.close()
 
     def printError(self):
         print (self.cid)
-
 
