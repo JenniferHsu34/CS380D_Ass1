@@ -59,7 +59,6 @@ class server(threading.Thread):
                 insert1 = pickle.loads(msg)
                 self.dicts[self.sid][self.sid].update(insert1)
 
-
         self.printStore()
 
 
