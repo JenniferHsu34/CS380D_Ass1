@@ -11,6 +11,7 @@ serverPort = randint(2000,26000)
 servers = []
 clients = []
 clientPort = randint(30000, 40000)
+masterPort = 27000
 print(serverPort,clientPort)
 
 def joinServer (sid):
@@ -53,6 +54,14 @@ def createConnection(id1, id2):
         clients[id1].join()
     return 0
 
+def stabilize():
+    s = socket.socket()
+    host  = socket.gethostname()
+    s.bind((host,masterPort))
+    for server in servers:
+        s.connect((host, serverPort-server.sid))
+        s.send(b"fffff")
+
 joinServer(0)
 joinServer(1)
 joinClient(0,0)
@@ -71,3 +80,4 @@ print(id(servers[0].dicts[0]))
 print(id(servers[1].dicts[1]))
 printStore(0)
 printStore(1)
+stabilize()
