@@ -1,7 +1,7 @@
 import socket  # Import socket module
 import threading
 import pickle
-
+import time
 
 
 class server(threading.Thread):
@@ -12,6 +12,7 @@ class server(threading.Thread):
         self.sid = sid
         self.clientM, self.addr = "", 0
         self.port = port
+        self.lock = threading.Lock()
         threading.Thread.__init__(self)
 
     def printStore(self):
@@ -43,23 +44,28 @@ class server(threading.Thread):
 
         while True:
             clientM, addr = s.accept()  # Establish connection with client.
-            if addr[1]!=27000:
-                print('Server', self.sid, 'receive from', addr, ' >> ', "connected")
-                threading.Thread(target = self.on_new_client, args=(clientM, addr)).start()
-                print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-            else:
-                self.stabilize()
+            print('Server', self.sid, 'receive from', addr, ' >> ', "connected")
+            threading.Thread(target = self.on_new_client, args=(clientM, addr)).start()
+            print("################################3")
 
     def on_new_client(self, clientM, addr):
         print("HEre")
         while True:
             msg = clientM.recv(4096)
-
             if (msg != b''):
-                print('Server', self.sid, 'receive from', addr, ' >> ', msg)
-                insert1 = pickle.loads(msg)
-                self.dicts[self.sid][self.sid].update(insert1)
+                self.lock.acquire()
+                if (msg == b'fffff'):
+                    self.stabilize()
+                else:
+                    print('Server', self.sid, 'receive from', addr, ' >> ', msg)
+                    insert1 = pickle.loads(msg)
+                    self.dicts[self.sid][self.sid].update(insert1)
+                self.lock.release()
+
 
     def stabilize(self):
+        time.sleep(1)
+        print("stable")
+        time.sleep(1)
         return 0
 

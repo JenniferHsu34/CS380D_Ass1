@@ -84,4 +84,10 @@ print(id(servers[0].dicts[0]))
 print(id(servers[1].dicts[1]))
 printStore(0)
 printStore(1)
+
+time.sleep(1)
 stabilize()
+time.sleep(0.2)
+for i in range(200):
+    for j in range(5):
+        put(j,i,i)
