@@ -18,8 +18,6 @@ def joinServer (sid):
     s=server(sid, serverPort - sid)
     s.start()
     servers.append(s)
-    #new_thread = threading.Thread(target=s.run, args=(sid, serverPort - sid))
-    #new_thread.start()  # run the thread
 
 def killServer (sid):
    for t in threading.enumerate():
@@ -64,8 +62,9 @@ def stabilize():
 
 joinServer(0)
 joinServer(1)
-joinClient(0,0)
-joinClient(1,0)
+for i in range(5):
+    joinClient(i,0)
+#joinClient(1,0)
 
 
 time.sleep(0.1)

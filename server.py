@@ -32,7 +32,6 @@ class server(threading.Thread):
         self.s.connect((self.host, self.sport))
 
 
-
     def run(self):
         s = socket.socket()  # Create a socket object
         self.host = socket.gethostname()  # Get local machine name
@@ -44,9 +43,12 @@ class server(threading.Thread):
 
         while True:
             clientM, addr = s.accept()  # Establish connection with client.
-            print('Server', self.sid, 'receive from', addr, ' >> ', "connected")
-            threading.Thread(target = self.on_new_client, args=(clientM, addr)).run()
-            print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+            if addr[1]!=27000:
+                print('Server', self.sid, 'receive from', addr, ' >> ', "connected")
+                threading.Thread(target = self.on_new_client, args=(clientM, addr)).start()
+                print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+            else:
+                self.stabilize()
 
     def on_new_client(self, clientM, addr):
         print("HEre")
@@ -58,5 +60,6 @@ class server(threading.Thread):
                 insert1 = pickle.loads(msg)
                 self.dicts[self.sid][self.sid].update(insert1)
 
-
+    def stabilize(self):
+        return 0
 
