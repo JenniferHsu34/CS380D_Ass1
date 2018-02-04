@@ -34,32 +34,29 @@ class server(threading.Thread):
 
 
     def run(self):
+        s = socket.socket()  # Create a socket object
+        self.host = socket.gethostname()  # Get local machine name
+        print('Server started!')
+        print('Server address:', self.host, ':', self.port)
+        print('Waiting for clients...')
+        s.bind((self.host, self.port))  # Bind to the port
+        s.listen(5)  # Now wait for client connection.
+
         while True:
-            s = socket.socket()  # Create a socket object
-            host = socket.gethostname()  # Get local machine name
-            print('Server started!')
-            print('Server address:', host, ':', self.port)
-            print('Waiting for clients...')
-            s.bind((host, self.port))  # Bind to the port
-            s.listen(5)  # Now wait for client connection.
+            clientM, addr = s.accept()  # Establish connection with client.
+            print('Server', self.sid, 'receive from', addr, ' >> ', "connected")
+            threading.Thread(target = self.on_new_client, args=(clientM, addr)).run()
+            print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 
-
-            self.clientM, self.addr = s.accept()  # Establish connection with client.
-            print('Server', self.sid, 'receive from', self.addr, ' >> ', )
-            threading.Thread(target = self.on_new_client).run()
-            s.close()
-
-    def on_new_client(self):
+    def on_new_client(self, clientM, addr):
         print("HEre")
         while True:
-            msg = self.clientM.recv(4096)
+            msg = clientM.recv(4096)
 
             if (msg != b''):
-                print('Server', self.sid, 'receive from', self.addr, ' >> ', msg)
+                print('Server', self.sid, 'receive from', addr, ' >> ', msg)
                 insert1 = pickle.loads(msg)
                 self.dicts[self.sid][self.sid].update(insert1)
-
-        self.printStore()
 
 
 

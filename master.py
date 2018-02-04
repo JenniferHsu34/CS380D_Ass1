@@ -56,11 +56,12 @@ def createConnection(id1, id2):
 joinServer(0)
 joinServer(1)
 joinClient(0,0)
+joinClient(1,0)
 
 
 time.sleep(0.1)
 put(0,1,1)
-put(0,2,4)
+put(1,2,4)
 put(0,3,3)
 breakConnection(0,0)
 createConnection(0,1)
