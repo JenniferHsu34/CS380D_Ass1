@@ -14,9 +14,9 @@ class vclock:
         values greater or equal to those of the merged
         clocks.
         """
-        return list(map(max, zip(self.vclock, b)))
+        self.vclock = list(map(max, zip(self.vclock, b)))
 
-    def get_timestamp(self):
+    def getTimestamp(self):
         return self.vclock[self.sid]
 
     def compare(self, b):
@@ -43,7 +43,7 @@ class vclock:
         return
 
 
-    def is_concurrent(self, b):
+    def isConcurrent(self, b):
         """
         Returns whether the given clocks are concurrent.
         They must not be equal in value.
@@ -63,5 +63,15 @@ flag = vclock.is_concurrent(a, c)
 print a
 print c
 print flag
-
 '''
+
+a = vclock(3, 0)
+b = vclock(3, 1)
+c = vclock(3, 2)
+a.increment()
+a.increment()
+print(a.vclock)
+b.merge(a.vclock)
+print(b.vclock)
+b.increment()
+print(b.vclock)
