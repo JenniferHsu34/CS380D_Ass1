@@ -86,17 +86,22 @@ class server(threading.Thread):
         self.vclock.increment()
         self.updateItem(insertPair)
         return 0
-    def get(self,key):
+
+    def get(self, key):
         """
-        Update wLog and vClock from exchanging with other server.
+        get value by checking wLog and history
         """
+        # check wLog
         idx = len(self.writeLog) - 1
-        while idx >= 0:
+        while idx >= 0
             if key in self.writeLog[idx][3]:
                 return self.writeLog[idx][3][key]
             else:
                 idx -= 1
-        return 0
+        # check history
+        if key in self.history:
+            return self.history[key]
+        return None
 
     def antiEntropty(self, otherLog, otherVclock):
         """
