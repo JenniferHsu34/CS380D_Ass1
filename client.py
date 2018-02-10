@@ -29,9 +29,12 @@ class client(threading.Thread):
         return value
 
     def put(self, key, value):
-        insert1 = key
-        self.counter = self.counter +1
-        self.s.send(pickle.dumps(str(self.counter)))
+        insert1 = {key:value}
+        self.s.send(pickle.dumps(insert1))
+        #-----------------debug------------
+        # self.counter = self.counter +1
+        # self.s.send(pickle.dumps(str(self.counter)))
+
 
     def connect(self, sport):
         self.sport = sport
