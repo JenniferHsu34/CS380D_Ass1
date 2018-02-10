@@ -16,6 +16,11 @@ class server(threading.Thread):
         self.history = {}
         self.clientM, self.addr = "", 0
         self.port = port
+
+
+        #Socket for stablizing
+        self.sendSocket = socket.socket()
+
         threading.Thread.__init__(self)
 
     def printStore(self):
@@ -27,9 +32,7 @@ class server(threading.Thread):
 
     def connect(self,sport):
         self.sport = sport
-
         self.s.close()
-
         self.s = socket.socket()
         self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.s.bind(self.addr)
@@ -88,7 +91,7 @@ class server(threading.Thread):
         Update wLog and vClock from exchanging with other server.
         """
         idx = len(self.writeLog) - 1
-        while idx >= 0
+        while idx >= 0:
             if key in self.writeLog[idx][3]:
                 return self.writeLog[idx][3][key]
             else:
@@ -121,19 +124,39 @@ class server(threading.Thread):
     def updateItem(self, insertPair): #### what's CLK here ???
         newRow = (sys.maxint, self.vclock.getTimestamp(), self.sid, insertPair)
         self.writeLog.append(newRow)
+
+
+    def sendWriteLog(self,sid):
+        #connect !!!!!need transfor sid to sport
+        connect(sid + 1)
+
+        self.sendSocket
+        return 0
+
+    def receiveWriteLog(self):
+        s = socket.socket()
+        #s.listen()
+        s.accept()
+        return 0
+
+    def broadcast(self):
+        for i in range(4):
+            sendWriteLog(i)
+        return 0
+
     def stabilize(self):
         if self.sid == 0:
-            sendWriteLog
-            receiveWriteLog
+            self.sendWriteLog(self.sid+1)
+            self.receiveWriteLog()
         elif self.sid == 4:
-            receiveWriteLog
-            antiEntropy
-            broadcast # 4 sendWriteLog
+            self.receiveWriteLog()
+            self.antiEntropy()
+            self.broadcast() # 4 sendWriteLog
         else:
-            receiveWriteLog
-            antiEntropy
-            sendWriteLog
-            receiveWriteLog
+            self.receiveWriteLog()
+            self.antiEntropy()
+            self.sendWriteLog(self.sid+1)
+            self.receiveWriteLog()
 
         time.sleep(1)
         print("stable")
