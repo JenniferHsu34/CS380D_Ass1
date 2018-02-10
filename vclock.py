@@ -1,59 +1,64 @@
-def from_size(n):
-    """
-    Constructs a zeroed, *n* sized vector clock.
-    """
-    return [0] * n
+class vclock:
+
+    def __init__(self, n, sid):
+        """
+        Constructs a zeroed, *n* sized vector clock.
+        """
+        self.vclock = [0] * n
+        self.sid = sid
 
 
-def merge(a, b):
-    """
-    Given two clocks, return a new clock with all
-    values greater or equal to those of the merged
-    clocks.
-    """
-    return list(map(max, zip(a, b)))
+    def merge(self, b):
+        """
+        Given two clocks, return a new clock with all
+        values greater or equal to those of the merged
+        clocks.
+        """
+        return list(map(max, zip(self.vclock, b)))
+
+    def get_timestamp(self):
+        return self.vclock[self.sid]
+
+    def compare(self, b):
+        """
+        Compares two vector clocks, returns -1 if ``a < b``,
+        1 if ``a > b`` else 0 for concurrent events
+        or identical values.
+        """
+        gt = False
+        lt = False
+        for j, k in zip(self.vclock, b):
+            gt |= j > k
+            lt |= j < k
+            if gt and lt:
+                break
+        return int(gt) - int(lt)
 
 
-def compare(a, b):
-    """
-    Compares two vector clocks, returns -1 if ``a < b``,
-    1 if ``a > b`` else 0 for concurrent events
-    or identical values.
-    """
-    gt = False
-    lt = False
-    for j, k in zip(a, b):
-        gt |= j > k
-        lt |= j < k
-        if gt and lt:
-            break
-    return int(gt) - int(lt)
+    def increment(self):
+        """
+        Increment the clock at *index*.
+        """
+        self.vclock[self.sid] = max(self.vclock) + 1
+        return
 
 
-def increment(clock, index):
-    """
-    Increment the clock at *index*.
-    """
-    clock[index] += 1
-    return
+    def is_concurrent(self, b):
+        """
+        Returns whether the given clocks are concurrent.
+        They must not be equal in value.
+        """
 
-
-def is_concurrent(a, b):
-    """
-    Returns whether the given clocks are concurrent.
-    They must not be equal in value.
-    """
-
-    return (a != b) and compare(a, b) == 0
+        return (self.vclock != b) and self.compare(self.vclock, b) == 0
 
 '''
 example code
 import vclock  
-a = vclock.from_size(3)
-b = vclock.from_size(3)
-vclock.increment(a, 0)
-vclock.increment(b, 1)
-c = vclock.merge(a,b)
+a = vclock(3)
+b = vclock(3)
+a.increment()    
+b.increment()
+a.merge(b.vclock)
 flag = vclock.is_concurrent(a, c)
 print a
 print c
