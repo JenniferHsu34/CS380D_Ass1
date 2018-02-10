@@ -82,7 +82,29 @@ class server(threading.Thread):
     def get(self,key):
         return 0
 
+    def antiEntropty(self, otherLog):
 
+        l1, l2 = len(self.writeLog), len(otherLog)
+        merged = [] * (l1 + l2)
+        i, j, total = 0, 0, 0
+        while i < l1 and j < l2:
+            if self.writeLog[i] > otherLog[j]:
+                merged[total] = otherLog[j]
+                j += 1
+            else:
+                merge[total] = self.writeLog[i]
+                i += 1
+            total += 1
+        if i < l1:
+            merge[total:] = self.writeLog[i:]
+        else:
+            merge[total:] = otherLog[j:]
+        self.writeLog = merged
+        del merged
+
+    def updateItem(self, inserPair): #### what's CLK here ???
+        newRow = (sys.maxint, CLK, self.sid, inserPair)
+        self.writeLog.append(newRow)
     def stabilize(self):
         time.sleep(1)
         print("stable")
