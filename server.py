@@ -1,7 +1,8 @@
 import socket  # Import socket module
 import threading
 import pickle
-from vclock import vclock
+import time
+import io
 
 
 class server(threading.Thread):
@@ -10,11 +11,9 @@ class server(threading.Thread):
 
     def __init__(self, sid, port):
         self.sid = sid
-        self.vclock = vclock(5, sid)
-        self.writeLog = []
-        self.history = {}
         self.clientM, self.addr = "", 0
         self.port = port
+        self.lock = threading.Lock()
         threading.Thread.__init__(self)
 
     def printStore(self):
@@ -60,15 +59,21 @@ class server(threading.Thread):
                     self.stabilize()
                 else:
                     print('Server', self.sid, 'receive from', addr, ' >> ', msg)
-                    receiveList = pickle.loads(msg)
-                    print(receiveList)
-                    for entry in receiveList:
-                        if (isinstance(entry,str)):
-                            value = self.get(entry)
-                            clientM.send(pickle.dumps(value))
-                        else:
-                            self.update(entry)
-                            print("!!!!!!str" + entry)
+                    file = io.BytesIO(msg)
+                    while True:
+
+                        try:
+                            entry = pickle.load(file)
+
+                            if (isinstance(entry, dict)):
+                                self.update(entry)
+                                print("!!!!!!str" + str(entry))
+                            else:
+                                value = self.get(entry)
+                                clientM.send(pickle.dumps(value))
+                        except EOFError:
+                            break
+
                     #self.dicts[self.sid][self.sid].update(insert1)
                 self.lock.release()
 
@@ -79,7 +84,6 @@ class server(threading.Thread):
 
 
     def stabilize(self):
-
         time.sleep(1)
         print("stable")
         time.sleep(1)
