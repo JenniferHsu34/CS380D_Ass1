@@ -83,6 +83,9 @@ class server(threading.Thread):
                 self.lock.release()
 
     def update(self, insertPair):
+        """
+        update writeLog and vClock, called when a write occurs
+        """
         self.vclock.increment()
         self.updateItem(insertPair)
         return 0
