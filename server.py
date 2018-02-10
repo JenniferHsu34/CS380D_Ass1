@@ -2,6 +2,7 @@ import socket  # Import socket module
 import threading
 import pickle
 import time
+import io
 
 
 class server(threading.Thread):
@@ -58,15 +59,21 @@ class server(threading.Thread):
                     self.stabilize()
                 else:
                     print('Server', self.sid, 'receive from', addr, ' >> ', msg)
-                    receiveList = pickle.loads(msg)
-                    print(receiveList)
-                    for entry in receiveList:
-                        if (isinstance(entry,str)):
-                            value = self.get(entry)
-                            clientM.send(pickle.dumps(value))
-                        else:
-                            self.update(entry)
-                            print("!!!!!!str" + entry)
+                    file = io.BytesIO(msg)
+                    while True:
+
+                        try:
+                            entry = pickle.load(file)
+
+                            if (isinstance(entry, dict)):
+                                self.update(entry)
+                                print("!!!!!!str" + str(entry))
+                            else:
+                                value = self.get(entry)
+                                clientM.send(pickle.dumps(value))
+                        except EOFError:
+                            break
+
                     #self.dicts[self.sid][self.sid].update(insert1)
                 self.lock.release()
 
