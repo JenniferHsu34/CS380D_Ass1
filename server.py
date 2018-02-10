@@ -1,8 +1,7 @@
 import socket  # Import socket module
 import threading
 import pickle
-import time
-import io
+from vclock import vclock
 
 
 class server(threading.Thread):
@@ -11,9 +10,11 @@ class server(threading.Thread):
 
     def __init__(self, sid, port):
         self.sid = sid
+        self.vclock = vclock(5, sid)
+        self.writeLog = []
+        self.history = {}
         self.clientM, self.addr = "", 0
         self.port = port
-        self.lock = threading.Lock()
         threading.Thread.__init__(self)
 
     def printStore(self):
@@ -45,47 +46,28 @@ class server(threading.Thread):
 
         while True:
             clientM, addr = s.accept()  # Establish connection with client.
-            print('Server', self.sid, 'receive from', addr, ' >> ', "connected")
-            threading.Thread(target = self.on_new_client, args=(clientM, addr)).start()
-            print("################################3")
+            if addr[1]!=27000:
+                print('Server', self.sid, 'receive from', addr, ' >> ', "connected")
+                threading.Thread(target = self.on_new_client, args=(clientM, addr)).start()
+                print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+            else:
+                self.stabilize()
 
     def on_new_client(self, clientM, addr):
         print("HEre")
         while True:
             msg = clientM.recv(4096)
+
             if (msg != b''):
-                self.lock.acquire()
-                if (msg == b'fffff'):
-                    self.stabilize()
-                else:
-                    print('Server', self.sid, 'receive from', addr, ' >> ', msg)
-                    file = io.BytesIO(msg)
-                    while True:
-
-                        try:
-                            entry = pickle.load(file)
-
-                            if (isinstance(entry, dict)):
-                                self.update(entry)
-                                print("!!!!!!str" + str(entry))
-                            else:
-                                value = self.get(entry)
-                                clientM.send(pickle.dumps(value))
-                        except EOFError:
-                            break
-
-                    #self.dicts[self.sid][self.sid].update(insert1)
-                self.lock.release()
-
-    def update(self,insertPair):
-        return 0
-    def get(self,key):
-        return 0
+                print('Server', self.sid, 'receive from', addr, ' >> ', msg)
+                insert1 = pickle.loads(msg)
+                self.dicts[self.sid][self.sid].update(insert1)
 
 
     def stabilize(self):
-        time.sleep(1)
-        print("stable")
-        time.sleep(1)
+
+        self.writeLog
+        self.commit
+
         return 0
 
