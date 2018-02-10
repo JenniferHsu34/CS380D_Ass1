@@ -23,7 +23,10 @@ class client(threading.Thread):
         self.s.connect((self.host, self.sport))
 
     def get(self, key):
-        return 0
+        self.s.send(pickle.dumps(key))
+        msg = self.s.recv(4096)
+        value = pickle.loads(msg)
+        return value
 
     def put(self, key, value):
         insert1 = {key: value}
@@ -44,7 +47,7 @@ class client(threading.Thread):
         if status == "put":
             self.put(arg0, arg1)
         elif status == "get":
-            self.get(arg0)
+            return self.get(arg0)
         elif status == "break":
             self.close()
         elif status == "connect":
