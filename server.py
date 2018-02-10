@@ -79,6 +79,7 @@ class server(threading.Thread):
 
 
     def stabilize(self):
+
         time.sleep(1)
         print("stable")
         time.sleep(1)
