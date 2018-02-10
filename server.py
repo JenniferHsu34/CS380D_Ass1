@@ -86,8 +86,12 @@ class server(threading.Thread):
         """
         Update wLog and vClock from exchanging with other server.
         """
-        l = len(self.writeLog)
-        for i in range ()
+        idx = len(self.writeLog) - 1
+        while idx >= 0
+            if key in self.writeLog[idx][3]:
+                return self.writeLog[idx][3][key]
+            else:
+                idx -= 1
         return 0
 
     def antiEntropty(self, otherLog, otherVclock):
