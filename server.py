@@ -62,7 +62,7 @@ class server(threading.Thread):
                     for entry in receiveList:
                         if (isinstance(entry,str)):
                             value = self.get(entry)
-
+                            clientM.send(pickle.dumps(value))
                         else:
                             self.update(entry)
                             print("!!!!!!str" + entry)
