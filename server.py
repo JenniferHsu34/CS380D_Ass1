@@ -46,28 +46,41 @@ class server(threading.Thread):
 
         while True:
             clientM, addr = s.accept()  # Establish connection with client.
-            if addr[1]!=27000:
-                print('Server', self.sid, 'receive from', addr, ' >> ', "connected")
-                threading.Thread(target = self.on_new_client, args=(clientM, addr)).start()
-                print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-            else:
-                self.stabilize()
+            print('Server', self.sid, 'receive from', addr, ' >> ', "connected")
+            threading.Thread(target = self.on_new_client, args=(clientM, addr)).start()
+            print("################################3")
 
     def on_new_client(self, clientM, addr):
         print("HEre")
         while True:
             msg = clientM.recv(4096)
-
             if (msg != b''):
-                print('Server', self.sid, 'receive from', addr, ' >> ', msg)
-                insert1 = pickle.loads(msg)
-                self.dicts[self.sid][self.sid].update(insert1)
+                self.lock.acquire()
+                if (msg == b'fffff'):
+                    self.stabilize()
+                else:
+                    print('Server', self.sid, 'receive from', addr, ' >> ', msg)
+                    receiveList = pickle.loads(msg)
+                    print(receiveList)
+                    for entry in receiveList:
+                        if (isinstance(entry,str)):
+                            value = self.get(entry)
+                            clientM.send(pickle.dumps(value))
+                        else:
+                            self.update(entry)
+                            print("!!!!!!str" + entry)
+                    #self.dicts[self.sid][self.sid].update(insert1)
+                self.lock.release()
+
+    def update(self,insertPair):
+        return 0
+    def get(self,key):
+        return 0
 
 
     def stabilize(self):
-
-        self.writeLog
-        self.commit
-
+        time.sleep(1)
+        print("stable")
+        time.sleep(1)
         return 0
 
