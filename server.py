@@ -1,8 +1,7 @@
 import socket  # Import socket module
 import threading
 import pickle
-import time
-import io
+from vclock import vclock
 
 
 class server(threading.Thread):
@@ -11,9 +10,11 @@ class server(threading.Thread):
 
     def __init__(self, sid, port):
         self.sid = sid
+        self.vclock = vclock(5, sid)
+        self.writeLog = []
+        self.history = {}
         self.clientM, self.addr = "", 0
         self.port = port
-        self.lock = threading.Lock()
         threading.Thread.__init__(self)
 
     def printStore(self):
@@ -108,6 +109,19 @@ class server(threading.Thread):
         newRow = (sys.maxint, self.vclock.getTimestamp(), self.sid, inserPair)
         self.writeLog.append(newRow)
     def stabilize(self):
+        if self.sid == 0:
+            sendWriteLog
+            receiveWriteLog
+        elif self.sid == 4:
+            receiveWriteLog
+            antiEntropy
+            broadcast # 4 sendWriteLog
+        else:
+            receiveWriteLog
+            antiEntropy
+            sendWriteLog
+            receiveWriteLog
+
         time.sleep(1)
         print("stable")
         time.sleep(1)
