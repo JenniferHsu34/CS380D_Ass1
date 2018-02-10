@@ -59,6 +59,7 @@ class server(threading.Thread):
                 else:
                     print('Server', self.sid, 'receive from', addr, ' >> ', msg)
                     receiveList = pickle.loads(msg)
+                    print(receiveList)
                     for entry in receiveList:
                         if (isinstance(entry,str)):
                             value = self.get(entry)
@@ -70,6 +71,7 @@ class server(threading.Thread):
                 self.lock.release()
 
     def update(self,insertPair):
+        return 0
     def get(self,key):
         return 0
 

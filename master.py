@@ -90,7 +90,7 @@ printStore(0)
 printStore(1)
 
 
-#stabilize()
+stabilize()
 for i in range(200):
     for j in range(5):
         put(j,str(i),str(i))
