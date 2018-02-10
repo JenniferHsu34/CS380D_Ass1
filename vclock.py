@@ -16,7 +16,7 @@ class vclock:
         """
         return list(map(max, zip(self.vclock, b)))
 
-    def get_timestamp(self):
+    def getTimestamp(self):
         return self.vclock[self.sid]
 
     def compare(self, b):
@@ -43,7 +43,7 @@ class vclock:
         return
 
 
-    def is_concurrent(self, b):
+    def isConcurrent(self, b):
         """
         Returns whether the given clocks are concurrent.
         They must not be equal in value.
