@@ -58,7 +58,7 @@ def createConnection(id1, id2):
 
 def stabilize():
 
-    host  = socket.gethostname()
+    host = socket.gethostname()
 
     i = 0
     for server in servers:

@@ -61,16 +61,18 @@ class server(threading.Thread):
                     receiveList = pickle.loads(msg)
                     for entry in receiveList:
                         if (isinstance(entry,str)):
-                            #sever reply
+                            value = self.get(entry)
+
                         else:
                             self.update(entry)
-                            print("!!!!!!str" + insert1)
+                            print("!!!!!!str" + entry)
                     #self.dicts[self.sid][self.sid].update(insert1)
                 self.lock.release()
 
     def update(self,insertPair):
     def get(self,key):
         return 0
+
 
     def stabilize(self):
         time.sleep(1)
