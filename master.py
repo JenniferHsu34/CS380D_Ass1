@@ -40,6 +40,10 @@ def put(cid, key, value):
         clients[cid].join()
     return 0
 
+def get(cid, key):
+    print (clients[cid].run("get", key))
+    return 0
+
 def breakConnection(id1, id2):
     clients[id1].run("break")
     if clients[id1].is_alive():
@@ -54,7 +58,7 @@ def createConnection(id1, id2):
 
 def stabilize():
 
-    host  = socket.gethostname()
+    host = socket.gethostname()
 
     i = 0
     for server in servers:
@@ -72,16 +76,7 @@ for i in range(5):
 #joinClient(1,0)
 
 
-time.sleep(0.1)
-put(0,1,1)
-put(1,2,4)
-put(0,3,3)
-breakConnection(0,0)
-createConnection(0,1)
-put(0,3,3)
-time.sleep(0.1)
-print(id(servers[0].dicts[0]))
-print(id(servers[1].dicts[1]))
-printStore(0)
-printStore(1)
-stabilize()
+
+for i in range(200):
+    for j in range(5):
+        put(j,str(i),str(i))
