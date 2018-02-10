@@ -19,15 +19,16 @@ class client(threading.Thread):
         self.s = socket.socket()
         self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.s.bind(self.addr)
-        print(cid, "client  ", self.sport)
         self.s.connect((self.host, self.sport))
+        self.counter = 0
 
     def get(self, key):
         return 0
 
     def put(self, key, value):
-        insert1 = {key: value}
-        self.s.send(pickle.dumps(insert1))
+        insert1 = key
+        self.counter = self.counter +1
+        self.s.send(pickle.dumps(str(self.counter)))
 
     def connect(self, sport):
         self.sport = sport
@@ -49,7 +50,7 @@ class client(threading.Thread):
             self.close()
         elif status == "connect":
             self.connect(arg0)
-        print("client", self.cid, status)
+
 
 
     def printError(self):
