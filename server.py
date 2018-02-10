@@ -83,10 +83,17 @@ class server(threading.Thread):
         self.updateItem(insertPair)
         return 0
     def get(self,key):
+        """
+        Update wLog and vClock from exchanging with other server.
+        """
+        l = len(self.writeLog)
+        for i in range ()
         return 0
 
-    def antiEntropty(self, otherLog):
-
+    def antiEntropty(self, otherLog, otherVclock):
+        """
+        Update wLog and vClock from exchanging with other server.
+        """
         l1, l2 = len(self.writeLog), len(otherLog)
         merged = [] * (l1 + l2)
         i, j, total = 0, 0, 0
@@ -104,9 +111,10 @@ class server(threading.Thread):
             merge[total:] = otherLog[j:]
         self.writeLog = merged
         del merged
+        self.vclock.merge(otherVclock)
 
-    def updateItem(self, inserPair): #### what's CLK here ???
-        newRow = (sys.maxint, self.vclock.getTimestamp(), self.sid, inserPair)
+    def updateItem(self, insertPair): #### what's CLK here ???
+        newRow = (sys.maxint, self.vclock.getTimestamp(), self.sid, insertPair)
         self.writeLog.append(newRow)
     def stabilize(self):
         if self.sid == 0:
