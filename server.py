@@ -78,7 +78,9 @@ class server(threading.Thread):
                     #self.dicts[self.sid][self.sid].update(insert1)
                 self.lock.release()
 
-    def update(self,insertPair):
+    def update(self, insertPair):
+        self.vclock.increment()
+        self.updateItem(insertPair)
         return 0
     def get(self,key):
         return 0
@@ -104,7 +106,7 @@ class server(threading.Thread):
         del merged
 
     def updateItem(self, inserPair): #### what's CLK here ???
-        newRow = (sys.maxint, CLK, self.sid, inserPair)
+        newRow = (sys.maxint, self.vclock.getTimestamp(), self.sid, inserPair)
         self.writeLog.append(newRow)
     def stabilize(self):
         if self.sid == 0:
