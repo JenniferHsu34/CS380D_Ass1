@@ -40,6 +40,10 @@ def put(cid, key, value):
         clients[cid].join()
     return 0
 
+def get(cid, key):
+    print (clients[cid].run("get", key))
+    return 0
+
 def breakConnection(id1, id2):
     clients[id1].run("break")
     if clients[id1].is_alive():

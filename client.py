@@ -44,7 +44,7 @@ class client(threading.Thread):
         if status == "put":
             self.put(arg0, arg1)
         elif status == "get":
-            self.get(arg0)
+            return self.get(arg0)
         elif status == "break":
             self.close()
         elif status == "connect":
