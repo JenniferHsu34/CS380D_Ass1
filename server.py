@@ -5,6 +5,7 @@ from vclock import vclock
 
 
 class server(threading.Thread):
+    # Just test git
     dicts = threading.local()
     dicts = [[{},{}], [{},{}]]
 
