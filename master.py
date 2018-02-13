@@ -15,7 +15,7 @@ masterPort = randint(26002,29999)
 print(serverPort,clientPort)
 
 def joinServer (sid):
-    s=server(sid, serverPort - sid)
+    s=server(sid, sport(sid))
     s.start()
     servers.append(s)
 
@@ -55,19 +55,28 @@ def createConnection(id1, id2):
     if clients[id1].is_alive():
         clients[id1].join()
     return 0
+def connectServers (id1,id2):
+    sendToServer(id1,[id1,sport(id1)])
+    sendToServer(id2, [id2, sport(id2)])
 
+def sport(sid):
+    return serverPort - sid*20
+
+def sendToServer (sid,text):
+    host = socket.gethostname()
+    s = socket.socket()
+    s.bind((host, masterPort))
+    s.connect((host, sport(sid)))
+    s.send(text)
+    s.close()
+    masterPort = masterPort - 1
 def stabilize():
 
-    host = socket.gethostname()
 
-    i = 0
+
     for server in servers:
-        s = socket.socket()
-        s.bind((host,masterPort-i))
-        s.connect((host, serverPort-server.sid))
-        s.send(b'fffff')
-        s.close()
-        i = i+1
+        sendToServer(server.sid,b'fffff')
+
 
 joinServer(0)
 joinServer(1)
@@ -75,8 +84,10 @@ for i in range(5):
     joinClient(i,0)
 #joinClient(1,0)
 
+connectServers(0,1)
 
-
+'''
 for i in range(1000):
     for j in range(1):
         put(j,str(i),str(i))
+'''

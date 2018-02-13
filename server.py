@@ -23,12 +23,14 @@ class server(threading.Thread):
         self.vclock = vclock(5, sid)
         self.writeLog = []
         self.history = {}
-        self.clientM, self.addr = "", 0
+        self.clientM  = ""
         self.port = port
+        self.host = socket.gethostname()
         self.lock = threading.Lock()
+        self.bindport = self.port -1
+        #socket for all servers
+        self.sSockets  = [socket.socket() for i in range(10)]
 
-        #Socket for stablizing
-        self.sendSocket = socket.socket()
 
         threading.Thread.__init__(self)
 
@@ -50,7 +52,6 @@ class server(threading.Thread):
 
     def run(self):
         s = socket.socket()  # Create a socket object
-        self.host = socket.gethostname()  # Get local machine name
         print('Server started!')
         print('Server address:', self.host, ':', self.port)
         print('Waiting for clients...')
@@ -69,22 +70,33 @@ class server(threading.Thread):
             msg = recvAll(clientM, 4096)
             if (msg != b''):
                 self.lock.acquire()
-                if (msg == b'fffff'):
-                    self.stabilize()
-                else:
-                    print('Server', self.sid, 'receive from', addr, ' >> ', msg)
-                    file = io.BytesIO(msg)
-                    while True:
-                        try:
-                            entry = pickle.load(file)
-                            if (isinstance(entry, tuple)):
-                                self.update(entry)
-                                print("!!!!!!str" + str(entry))
-                            else:
-                                value = self.get(entry)
-                                clientM.send(pickle.dumps(value))
-                        except EOFError:
-                            break
+
+                print('Server', self.sid, 'receive from', addr, ' >> ', msg)
+                file = io.BytesIO(msg)
+                while True:
+                    try:
+                        if (msg == b'fffff'):
+                            self.stabilize()
+                        entry = pickle.load(file)
+
+
+                        if (isinstance(entry, list)):
+                            #assume entry is the sid
+                            #bind with the current bind port and output
+                            sid = list[0]
+                            sport = list[1]
+                            self.sSockets[sid].bind( (self.host,self.bindport) )
+                            self.sSockets[sid].connect( (self.host,sport) )
+                            self.bindport = self.bindport-1
+
+                        elif (isinstance(entry, tuple)):
+                            self.update(entry)
+                            print("!!!!!!str" + str(entry))
+                        else:
+                            value = self.get(entry)
+                            clientM.send(pickle.dumps(value))
+                    except EOFError:
+                        break
 
                     #self.dicts[self.sid][self.sid].update(insert1)
                 self.lock.release()
