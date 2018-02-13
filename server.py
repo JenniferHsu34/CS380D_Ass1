@@ -27,7 +27,6 @@ class server(threading.Thread):
         self.port = port
         self.lock = threading.Lock()
 
-
         #Socket for stablizing
         self.sendSocket = socket.socket()
 
@@ -78,8 +77,7 @@ class server(threading.Thread):
                     while True:
                         try:
                             entry = pickle.load(file)
-
-                            if (isinstance(entry, dict)):
+                            if (isinstance(entry, tuple)):
                                 self.update(entry)
                                 print("!!!!!!str" + str(entry))
                             else:
@@ -136,7 +134,14 @@ class server(threading.Thread):
             merge[total:] = otherLog[j:]
         self.writeLog = merged
         del merged
+
         self.vclock.merge(otherVclock)
+        historyTime = min(self.vclock)
+        while writeLog[0][1] < historyTime:
+            insertPair = self.writeLog[0][3]
+            self.history[insertPair[0]] = insertPair[1]
+            self.writeLog.pop()
+
 
     def updateItem(self, insertPair): #### what's CLK here ???
         newRow = (sys.maxsize, self.vclock.getTimestamp(), self.sid, insertPair)

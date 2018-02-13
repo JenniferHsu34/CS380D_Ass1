@@ -29,8 +29,8 @@ class client(threading.Thread):
         return value
 
     def put(self, key, value):
-        insert1 = {key:value}
-        self.s.sendall(pickle.dumps(insert1))
+        insertPair = (key, value)
+        self.s.sendall(pickle.dumps(insertPair))
         #-----------------debug------------
         # self.counter = self.counter +1
         # self.s.send(pickle.dumps(str(self.counter)))
