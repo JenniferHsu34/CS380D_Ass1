@@ -102,6 +102,7 @@ class server(threading.Thread):
         get value by checking wLog and history
         """
         # check wLog
+        self.vclock.increment()
         idx = len(self.writeLog) - 1
         while idx >= 0:
             if key in self.writeLog[idx][3]:
@@ -137,7 +138,7 @@ class server(threading.Thread):
 
         self.vclock.merge(otherVclock)
         historyTime = min(self.vclock)
-        while writeLog[0][1] < historyTime:
+        while writeLog[0][1] <= historyTime:
             insertPair = self.writeLog[0][3]
             self.history[insertPair[0]] = insertPair[1]
             self.writeLog.pop()
