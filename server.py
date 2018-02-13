@@ -124,9 +124,9 @@ class server(threading.Thread):
         # check history
         if key in self.history:
             return self.history[key]
-        return None
+        return 'ERR_KEY'
 
-    def antiEntropty(self, otherLog, otherVclock):
+    def antiEntropy(self, otherLog, otherVclock):
         """
         Update wLog and vClock from exchanging with other server.
         """
