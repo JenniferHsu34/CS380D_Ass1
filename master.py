@@ -83,13 +83,20 @@ def stabilize():
 
 joinServer(0)
 joinServer(1)
-for i in range(5):
-    joinClient(i,0)
+
+
+joinClient(0,0)
+joinClient(1,1)
+
+put(0,"")
 #joinClient(1,0)
+
+
+
 
 connectServers(0,1)
 
-#stabilize()
+stabilize()
 '''
 for i in range(1000):
     for j in range(1):

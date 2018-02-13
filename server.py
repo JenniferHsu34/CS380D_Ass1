@@ -15,9 +15,6 @@ def recvAll(socket, length):
 
 class server(threading.Thread):
     # Just test git
-    dicts = threading.local()
-    dicts = [[{},{}], [{},{}]]
-
     def __init__(self, sid, port):
         self.sid = sid
         self.vclock = vclock(5, sid)
@@ -162,14 +159,14 @@ class server(threading.Thread):
 
     def sendWriteLog(self,sid):
         #connect !!!!!need transfor sid to sport
-        self.sSockets[sid].send()
+        self.sSockets[sid].sendall(pickle.dumps(("writeLog",self.writeLog,self.vclock)))
         return 0
 
     def receiveWriteLog(self,sid):
-        s = self.sSockets[]
-        #s.listen()
-        s.accept()
-        return 0
+
+        s = self.sSockets[sid]
+        a = recvAll(s, 4096)
+        return pickle.loads(a)
 
     def broadcast(self):
         for i in range(4):
@@ -179,18 +176,22 @@ class server(threading.Thread):
     def stabilize(self):
         print("stablestablestablestablestablestablestablestablestable")
         if self.sid == 0:
-            self.sendWriteLog(self.sid+1)
-            self.receiveWriteLog()
-        elif self.sid == serverNum:
-            self.receiveWriteLog()
-            self.antiEntropy()
+            self.sendWriteLog(1)
+            self.receiveWriteLog(1)
+        elif self.sid == 1:
+            recvM  = self.receiveWriteLog(0)
+            print(str(recvM) )
+            self.antiEntropy(revM[1].revM[2])
+            self.sendWriteLog(0)
+
+        '''
             self.broadcast() # 4 sendWriteLog
         else:
             self.receiveWriteLog()
             self.antiEntropy()
             self.sendWriteLog(self.sid+1)
             self.receiveWriteLog()
-
+        '''
 
         print("stablestablestablestablestablestablestablestablestable")
         time.sleep(1)
