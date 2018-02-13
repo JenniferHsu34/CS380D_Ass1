@@ -131,26 +131,26 @@ class server(threading.Thread):
         Update wLog and vClock from exchanging with other server.
         """
         l1, l2 = len(self.writeLog), len(otherLog)
-        merged = [] * (l1 + l2)
+        merged = []
         i, j, total = 0, 0, 0
         while i < l1 and j < l2:
             if self.writeLog[i] > otherLog[j]:
-                merged[total] = otherLog[j]
+                merged.append(otherLog[j])
                 j += 1
             else:
-                merge[total] = self.writeLog[i]
+                merged.append(self.writeLog[i])
                 i += 1
-            total += 1
+            print((i,j,total))
         if i < l1:
-            merge[total:] = self.writeLog[i:]
+            merged.extend(self.writeLog[i:])
         else:
-            merge[total:] = otherLog[j:]
+            merged.extend(otherLog[j:])
         self.writeLog = merged
         del merged
 
-        self.vclock.merge(otherVclock)
-        historyTime = min(self.vclock)
-        while writeLog[0][1] <= historyTime:
+        self.vclock.merge(otherVclock.vclock)
+        historyTime = min(self.vclock.vclock)
+        while self.writeLog[0][1] <= historyTime:
             insertPair = self.writeLog[0][3]
             self.history[insertPair[0]] = insertPair[1]
             self.writeLog.pop()
@@ -197,4 +197,5 @@ class server(threading.Thread):
         print("stable")
         time.sleep(1)
         return 0
+
 
