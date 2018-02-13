@@ -14,11 +14,11 @@ def recvAll(socket, length):
             return data
 
 class server(threading.Thread):
-    # Just test git
+
     def __init__(self, sid, port):
         self.sid = sid
         self.vclock = vclock(5, sid)
-        self.writeLog = [2123,1213]
+        self.writeLog = []
         self.history = {}
         self.clientM  = ""
         self.port = port
@@ -32,10 +32,11 @@ class server(threading.Thread):
         threading.Thread.__init__(self)
 
     def printStore(self):
-        data = ""
-        for dict in self.dicts[self.sid]:
-            data += str(dict)
-        print(data)
+        dict = self.history
+        for entry in self.writeLog:
+            dict[entry[3][0]] = entry[3][1]
+        print(str(dict))
+        del dict
 
 
     def connect(self,sport):
@@ -195,6 +196,7 @@ class server(threading.Thread):
         '''
 
         print("stablestablestablestablestablestablestablestablestable")
+        time.sleep(1)
         return 0
 
 
