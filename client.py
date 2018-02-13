@@ -30,7 +30,7 @@ class client(threading.Thread):
 
     def put(self, key, value):
         insert1 = {key:value}
-        self.s.send(pickle.dumps(insert1))
+        self.s.sendall(pickle.dumps(insert1))
         #-----------------debug------------
         # self.counter = self.counter +1
         # self.s.send(pickle.dumps(str(self.counter)))

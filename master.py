@@ -77,6 +77,6 @@ for i in range(5):
 
 
 
-for i in range(200):
-    for j in range(5):
+for i in range(1000):
+    for j in range(1):
         put(j,str(i),str(i))

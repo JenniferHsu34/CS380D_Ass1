@@ -2,7 +2,16 @@ import socket  # Import socket module
 import threading
 import pickle
 from vclock import vclock
+import io
+import sys
 
+def recvAll(socket, length):
+    data = b''
+    while True:
+        packet = socket.recv(length)
+        data += packet
+        if len(packet) < length:
+            return data
 
 class server(threading.Thread):
     # Just test git
@@ -16,6 +25,7 @@ class server(threading.Thread):
         self.history = {}
         self.clientM, self.addr = "", 0
         self.port = port
+        self.lock = threading.Lock()
 
 
         #Socket for stablizing
@@ -57,7 +67,7 @@ class server(threading.Thread):
     def on_new_client(self, clientM, addr):
         print("HEre")
         while True:
-            msg = clientM.recv(4096)
+            msg = recvAll(clientM, 4096)
             if (msg != b''):
                 self.lock.acquire()
                 if (msg == b'fffff'):
@@ -66,7 +76,6 @@ class server(threading.Thread):
                     print('Server', self.sid, 'receive from', addr, ' >> ', msg)
                     file = io.BytesIO(msg)
                     while True:
-
                         try:
                             entry = pickle.load(file)
 
@@ -96,7 +105,7 @@ class server(threading.Thread):
         """
         # check wLog
         idx = len(self.writeLog) - 1
-        while idx >= 0
+        while idx >= 0:
             if key in self.writeLog[idx][3]:
                 return self.writeLog[idx][3][key]
             else:
@@ -130,7 +139,7 @@ class server(threading.Thread):
         self.vclock.merge(otherVclock)
 
     def updateItem(self, insertPair): #### what's CLK here ???
-        newRow = (sys.maxint, self.vclock.getTimestamp(), self.sid, insertPair)
+        newRow = (sys.maxsize, self.vclock.getTimestamp(), self.sid, insertPair)
         self.writeLog.append(newRow)
 
 

@@ -64,14 +64,3 @@ print a
 print c
 print flag
 '''
-
-a = vclock(3, 0)
-b = vclock(3, 1)
-c = vclock(3, 2)
-a.increment()
-a.increment()
-print(a.vclock)
-b.merge(a.vclock)
-print(b.vclock)
-b.increment()
-print(b.vclock)
