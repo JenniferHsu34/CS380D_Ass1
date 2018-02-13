@@ -62,7 +62,6 @@ class server(threading.Thread):
             clientM, addr = s.accept()  # Establish connection with client.
             print('Server', self.sid, 'receive from', addr, ' >> ', "connected")
             threading.Thread(target = self.on_new_client, args=(clientM, addr)).start()
-            print("################################3")
 
     def on_new_client(self, clientM, addr):
         print("HEre")
@@ -75,23 +74,23 @@ class server(threading.Thread):
                 file = io.BytesIO(msg)
                 while True:
                     try:
-                        if (msg == b'fffff'):
-                            self.stabilize()
+
                         entry = pickle.load(file)
 
-
-                        if (isinstance(entry, list)):
-                            #assume entry is the sid
-                            #bind with the current bind port and output
-                            sid = list[0]
-                            sport = list[1]
-                            self.sSockets[sid].bind( (self.host,self.bindport) )
-                            self.sSockets[sid].connect( (self.host,sport) )
-                            self.bindport = self.bindport-1
-
+                        if (isinstance(entry, str)):
+                            self.stabilize()
                         elif (isinstance(entry, tuple)):
-                            self.update(entry)
-                            print("!!!!!!str" + str(entry))
+                            if (entry[0] == "server"):
+                            # assume entry is the sid
+                            # bind with the current bind port and output
+                                sid = entry[1]
+                                sport = entry[2]
+                                self.sSockets[sid].bind((self.host, self.bindport))
+                                self.sSockets[sid].connect((self.host, sport))
+                                self.bindport = self.bindport - 1
+                            else:
+                                self.update(entry)
+                                print("!!!!!!str" + str(entry))
                         else:
                             value = self.get(entry)
                             clientM.send(pickle.dumps(value))
@@ -163,13 +162,11 @@ class server(threading.Thread):
 
     def sendWriteLog(self,sid):
         #connect !!!!!need transfor sid to sport
-        connect(sid + 1)
-
-        self.sendSocket
+        self.sSockets[sid].send()
         return 0
 
-    def receiveWriteLog(self):
-        s = socket.socket()
+    def receiveWriteLog(self,sid):
+        s = self.sSockets[]
         #s.listen()
         s.accept()
         return 0
@@ -180,10 +177,11 @@ class server(threading.Thread):
         return 0
 
     def stabilize(self):
+        print("stablestablestablestablestablestablestablestablestable")
         if self.sid == 0:
             self.sendWriteLog(self.sid+1)
             self.receiveWriteLog()
-        elif self.sid == 4:
+        elif self.sid == serverNum:
             self.receiveWriteLog()
             self.antiEntropy()
             self.broadcast() # 4 sendWriteLog
@@ -193,8 +191,8 @@ class server(threading.Thread):
             self.sendWriteLog(self.sid+1)
             self.receiveWriteLog()
 
-        time.sleep(1)
-        print("stable")
+
+        print("stablestablestablestablestablestablestablestablestable")
         time.sleep(1)
         return 0
 

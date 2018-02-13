@@ -5,6 +5,7 @@ from server import server
 from random import randint
 import time
 from ctypes import c_int, addressof
+import pickle
 
 serverPort = randint(2000,26000)
 
@@ -12,7 +13,22 @@ servers = []
 clients = []
 clientPort = randint(30000, 40000)
 masterPort = randint(26002,29999)
+
 print(serverPort,clientPort)
+
+
+def sport(sid):
+    return serverPort - sid*20
+
+def sendToServer (sid,text):
+    host = socket.gethostname()
+    s = socket.socket()
+    global masterPort
+    masterPort = masterPort - 1
+    s.bind((host, masterPort))
+    s.connect((host, sport(sid)))
+    s.send(pickle.dumps(text))
+    s.close()
 
 def joinServer (sid):
     s=server(sid, sport(sid))
@@ -56,26 +72,13 @@ def createConnection(id1, id2):
         clients[id1].join()
     return 0
 def connectServers (id1,id2):
-    sendToServer(id1,[id1,sport(id1)])
-    sendToServer(id2, [id2, sport(id2)])
+    sendToServer(id1,("server",id1,sport(id1)))
+    sendToServer(id2,("server",id2, sport(id2)))
 
-def sport(sid):
-    return serverPort - sid*20
-
-def sendToServer (sid,text):
-    host = socket.gethostname()
-    s = socket.socket()
-    s.bind((host, masterPort))
-    s.connect((host, sport(sid)))
-    s.send(text)
-    s.close()
-    masterPort = masterPort - 1
 def stabilize():
 
-
-
     for server in servers:
-        sendToServer(server.sid,b'fffff')
+        sendToServer(server.sid,"stabilize")
 
 
 joinServer(0)
@@ -86,6 +89,7 @@ for i in range(5):
 
 connectServers(0,1)
 
+#stabilize()
 '''
 for i in range(1000):
     for j in range(1):
