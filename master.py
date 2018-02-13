@@ -43,7 +43,7 @@ def killServer (sid):
 
 
 def joinClient (cid, sid):
-    c=client(cid, clientPort - cid, serverPort-sid)
+    c=client(cid, clientPort - cid, sport(sid))
     clients.append(c)
 
 
@@ -88,7 +88,7 @@ joinServer(1)
 joinClient(0,0)
 joinClient(1,1)
 
-put(0,"")
+
 #joinClient(1,0)
 
 

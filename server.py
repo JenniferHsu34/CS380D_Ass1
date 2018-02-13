@@ -18,7 +18,7 @@ class server(threading.Thread):
     def __init__(self, sid, port):
         self.sid = sid
         self.vclock = vclock(5, sid)
-        self.writeLog = []
+        self.writeLog = [2123,1213]
         self.history = {}
         self.clientM  = ""
         self.port = port
@@ -84,6 +84,7 @@ class server(threading.Thread):
                                 sport = entry[2]
                                 self.sSockets[sid].bind((self.host, self.bindport))
                                 self.sSockets[sid].connect((self.host, sport))
+                                self.sSockets[sid].send()
                                 self.bindport = self.bindport - 1
                             else:
                                 self.update(entry)
@@ -180,7 +181,7 @@ class server(threading.Thread):
             self.receiveWriteLog(1)
         elif self.sid == 1:
             recvM  = self.receiveWriteLog(0)
-            print(str(recvM) )
+            print(str(recvM))
             self.antiEntropy(revM[1].revM[2])
             self.sendWriteLog(0)
 
@@ -194,7 +195,6 @@ class server(threading.Thread):
         '''
 
         print("stablestablestablestablestablestablestablestablestable")
-        time.sleep(1)
         return 0
 
 
