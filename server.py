@@ -58,9 +58,9 @@ class server(threading.Thread):
         while True:
             clientM, addr = s.accept()  # Establish connection with client.
             print('Server', self.sid, 'receive from', addr, ' >> ', "connected")
-            threading.Thread(target = self.on_new_client, args=(clientM, addr)).start()
+            threading.Thread(target = self.on_new_client, args=(clientM, addr,s)).start()
 
-    def on_new_client(self, clientM, addr):
+    def on_new_client(self, clientM, addr,s):
         print("HEre")
         while True:
             msg = recvAll(clientM, 4096)
@@ -84,8 +84,10 @@ class server(threading.Thread):
                                 sport = entry[2]
                                 self.sSockets[sid].bind((self.host, self.bindport))
                                 self.sSockets[sid].connect((self.host, sport))
-                                self.sSockets[sid].send()
-                                self.bindport = self.bindport - 1
+                                text = pickle.dumps(("receive",sid))
+                                self.sSockets[sid].send(text)
+                            elif(entry[0] == "receive"):
+                                self.sSockets[entry[1]] = s
                             else:
                                 self.update(entry)
                                 print("!!!!!!str" + str(entry))
@@ -160,7 +162,7 @@ class server(threading.Thread):
 
     def sendWriteLog(self,sid):
         #connect !!!!!need transfor sid to sport
-        self.sSockets[sid].sendall(pickle.dumps(("writeLog",self.writeLog,self.vclock)))
+        self.sSockets[sid].send(pickle.dumps(("writeLog",self.writeLog,self.vclock)))
         return 0
 
     def receiveWriteLog(self,sid):
@@ -182,7 +184,7 @@ class server(threading.Thread):
         elif self.sid == 1:
             recvM  = self.receiveWriteLog(0)
             print(str(recvM))
-            self.antiEntropy(revM[1].revM[2])
+            self.antiEntropy(revM[1],revM[2])
             self.sendWriteLog(0)
 
         '''

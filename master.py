@@ -73,7 +73,7 @@ def createConnection(id1, id2):
     return 0
 def connectServers (id1,id2):
     sendToServer(id1,("server",id1,sport(id1)))
-    sendToServer(id2,("server",id2, sport(id2)))
+    #sendToServer(id2,("server",id2, sport(id2)))
 
 def stabilize():
 
