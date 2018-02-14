@@ -92,7 +92,7 @@ class server(threading.Thread):
                     try:
                         entry = pickle.load(file)
                         debug(entry)
-                        if (isinstance(entry, str)):
+                        if (entry == "stabilize"):
                             debug("fff")
                             self.stabilize()
                         elif (isinstance(entry, tuple)):
