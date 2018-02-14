@@ -96,6 +96,8 @@ joinClient(1,1)
 
 connectServers(0,1)
 
+time.sleep(0.2)
+
 stabilize()
 '''
 for i in range(1000):

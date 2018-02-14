@@ -4,8 +4,11 @@ import pickle
 from vclock import vclock
 import io
 import sys
+from random import randint
 
 def recvAll(socket, length):
+    socket.listen()
+    socket.accept()
     data = b''
     while True:
         packet = socket.recv(length)
@@ -13,6 +16,8 @@ def recvAll(socket, length):
         if len(packet) < length:
             return data
 
+sendPorts = [randint(2602,29999),randint(2602,29999)]
+receivePorts  = [randint(2602,29999),randint(2602,29999)]
 class server(threading.Thread):
 
     def __init__(self, sid, port):
@@ -27,6 +32,11 @@ class server(threading.Thread):
         self.bindport = self.port -1
         #socket for all servers
         self.sSockets  = [socket.socket() for i in range(10)]
+        self.sSockets[sid].setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        #send
+        self.sSockets[sid].bind((self.host, sendPorts[sid]))
+
+
 
 
         threading.Thread.__init__(self)
@@ -39,29 +49,21 @@ class server(threading.Thread):
         del dict
 
 
-    def connect(self,sport):
-        self.sport = sport
-        self.s.close()
-        self.s = socket.socket()
-        self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.s.bind(self.addr)
-        self.s.connect((self.host, self.sport))
-
 
     def run(self):
-        s = socket.socket()  # Create a socket object
+        self.s = socket.socket()  # Create a socket object
         print('Server started!')
         print('Server address:', self.host, ':', self.port)
         print('Waiting for clients...')
-        s.bind((self.host, self.port))  # Bind to the port
-        s.listen(5)  # Now wait for client connection.
+        self.s.bind((self.host, self.port))  # Bind to the port
+        self.s.listen(5)  # Now wait for client connection.
 
         while True:
-            clientM, addr = s.accept()  # Establish connection with client.
+            clientM, addr = self.s.accept()  # Establish connection with client.
             print('Server', self.sid, 'receive from', addr, ' >> ', "connected")
-            threading.Thread(target = self.on_new_client, args=(clientM, addr,s)).start()
+            threading.Thread(target = self.on_new_client, args=(clientM, addr)).start()
 
-    def on_new_client(self, clientM, addr,s):
+    def on_new_client(self, clientM, addr):
         print("HEre")
         while True:
             msg = recvAll(clientM, 4096)
@@ -78,6 +80,7 @@ class server(threading.Thread):
                         if (isinstance(entry, str)):
                             self.stabilize()
                         elif (isinstance(entry, tuple)):
+                            '''
                             if (entry[0] == "server"):
                             # assume entry is the sid
                             # bind with the current bind port and output
@@ -88,10 +91,13 @@ class server(threading.Thread):
                                 text = pickle.dumps(("receive",sid))
                                 self.sSockets[sid].send(text)
                             elif(entry[0] == "receive"):
-                                self.sSockets[entry[1]] = s
-                            else:
-                                self.update(entry)
-                                print("!!!!!!str" + str(entry))
+                                print ("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+                                clientM.send(b'ffff')
+                                self.sSockets[entry[1]] = clientM
+                                self.sSockets[entry[1]].send(b'ffff')
+                                '''
+                            self.update(entry)
+                            print("!!!!!!str" + str(entry))
                         else:
                             value = self.get(entry)
                             clientM.send(pickle.dumps(value))
@@ -163,19 +169,19 @@ class server(threading.Thread):
 
     def sendWriteLog(self,sid):
         #connect !!!!!need transfor sid to sport
+        # receive
+        self.sSockets[sid].connect((self.host, receivePorts[sid]))
+
         self.sSockets[sid].send(pickle.dumps(("writeLog",self.writeLog,self.vclock)))
         return 0
 
     def receiveWriteLog(self,sid):
 
-        s = self.sSockets[sid]
+        s = socket.socket()
+        s.bind((self.host,receivePorts[sid]))
         a = recvAll(s, 4096)
         return pickle.loads(a)
 
-    def broadcast(self):
-        for i in range(4):
-            sendWriteLog(i)
-        return 0
 
     def stabilize(self):
         print("stablestablestablestablestablestablestablestablestable")
