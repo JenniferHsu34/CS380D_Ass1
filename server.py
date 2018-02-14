@@ -23,7 +23,7 @@ debugV = 0
 def debug(s):
     global  debugV
     lsss = [str(debugV) for i in range(20)]
-    print(str(s)  + str(lsss))
+    #print(str(s)  + str(lsss))
     debugV = debugV +1
 
 class server(threading.Thread):
@@ -67,26 +67,28 @@ class server(threading.Thread):
     def run(self):
 
         self.s = socket.socket()  # Create a socket object
+        '''
         print('Server started!')
         print('Server address:', self.host, ':', self.clientPort)
         print('Waiting for clients...')
+        '''
         self.s.bind((self.host, self.clientPort))  # Bind to the clientPort
         self.s.listen(5)  # Now wait for client connection.
         threading.Thread(target=self.receiveWriteLog, args=()).start()
         while True:
             clientM, addr = self.s.accept()  # Establish connection with client.
             threading.Thread(target=self.on_new_client, args=(clientM, addr)).start()
-            print('Server', self.sid, 'receive from', addr, ' >> ', "connected")
+            #print('Server', self.sid, 'receive from', addr, ' >> ', "connected")
 
 
 
     def on_new_client(self, clientM, addr):
-        print("HEre")
+        #print("HEre")
         while True:
             msg = recvAll(clientM, 4096)
             if (msg != b''):
                 #self.lock.acquire()
-                print('Server', self.sid, 'receive from', addr, ' >> ', msg)
+                #print('Server', self.sid, 'receive from', addr, ' >> ', msg)
                 file = io.BytesIO(msg)
                 while True:
                     try:
@@ -113,7 +115,7 @@ class server(threading.Thread):
                                 self.sSockets[entry[1]].send(b'ffff')
                                 '''
                             self.update(entry)
-                            print("!!!!!!str" + str(entry))
+                            #print("!!!!!!str" + str(entry))
                         else:
                             value = self.get(entry)
                             clientM.send(pickle.dumps(value))
@@ -139,8 +141,8 @@ class server(threading.Thread):
         self.vclock.increment()
         idx = len(self.writeLog) - 1
         while idx >= 0:
-            if key in self.writeLog[idx][3]:
-                return self.writeLog[idx][3][key]
+            if key == self.writeLog[idx][3][0]:
+                return self.writeLog[idx][3][1]
             else:
                 idx -= 1
         # check history
@@ -156,13 +158,18 @@ class server(threading.Thread):
         merged = []
         i, j, total = 0, 0, 0
         while i < l1 and j < l2:
+
             if self.writeLog[i] > otherLog[j]:
                 merged.append(otherLog[j])
                 j += 1
+            elif self.writeLog[i] == otherLog[j]:
+                merged.append(otherLog[j])
+                j += 1
+                i += 1
             else:
                 merged.append(self.writeLog[i])
                 i += 1
-            print((i,j,total))
+            #print((i,j,total))
         if i < l1:
             merged.extend(self.writeLog[i:])
         else:
@@ -176,6 +183,7 @@ class server(threading.Thread):
             insertPair = self.writeLog[0][3]
             self.history[insertPair[0]] = insertPair[1]
             self.writeLog.pop()
+
 
     def updateItem(self, insertPair): #### what's CLK here ???
         newRow = (sys.maxsize, self.vclock.getTimestamp(), self.sid, insertPair)
@@ -224,6 +232,9 @@ class server(threading.Thread):
             self.finish_receive()
         elif self.sid == 1:
             self.finish_receive()
+            a = self.recv
+            print(a)
+            self.antiEntropy(a[1], a[2])
             self.sendWriteLog(sendPorts[0])
 
 

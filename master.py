@@ -14,7 +14,7 @@ clients = []
 clientPort = randint(30000, 40000)
 masterPort = randint(26002,29999)
 
-print(serverPort,clientPort)
+#print(serverPort,clientPort)
 
 
 def sport(sid):
@@ -57,7 +57,7 @@ def put(cid, key, value):
     return 0
 
 def get(cid, key):
-    print (clients[cid].run("get", key))
+    clients[cid].run("get", key)
     return 0
 
 def breakConnection(id1, id2):
@@ -81,24 +81,38 @@ def stabilize():
         sendToServer(server.sid,"stabilize")
 
 
+
+
+
+# TESTING
+
 joinServer(0)
 joinServer(1)
-
-
-joinClient(0,0)
-joinClient(1,1)
-
-
-#joinClient(1,0)
-
-
-
-
+time.sleep(1)
+joinClient(0, 0)
+joinClient(1, 1)
+print 'here?################'
 connectServers(0,1)
+print 'here??#########'
+get(0, "z")
+put(0, "x", 0)
+#get(0, "x")
 
+put(1, "x", 1)
+put(0,"x", 2)
+put(0,"y", 3)
+time.sleep(1)
+print '-----before stablize'
+print '[s0]', servers[0].vclock.vclock, servers[0].writeLog
+print '[s1]', servers[1].vclock.vclock, servers[1].writeLog
+print 'get x from s0: (exp 2) '
+get(0, "x") # should get 2
+print 'get x from s1: (exp 1)'
+get(1, "x") # should get 1
 stabilize()
-'''
-for i in range(1000):
-    for j in range(1):
-        put(j,str(i),str(i))
-'''
+time.sleep(1)
+print '-----after stablize'
+print '[s0]', servers[0].vclock.vclock, servers[0].writeLog #vclock -> 3, 1, 0, 0
+print '[s1]', servers[1].vclock.vclock, servers[1].writeLog #vclock -> 3, 1, 0, 0
+print 'get x from s1: (exp 2 since it did anti entropy) '
+get(1, "x") # should get 1
