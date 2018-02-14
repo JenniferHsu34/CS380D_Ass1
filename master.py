@@ -72,7 +72,7 @@ def createConnection(id1, id2):
         clients[id1].join()
     return 0
 def connectServers (id1,id2):
-    sendToServer(id1,("server",id1,sport(id1)))
+    sendToServer(id1,("server",id2,sport(id2)))
     #sendToServer(id2,("server",id2, sport(id2)))
 
 def stabilize():
@@ -95,8 +95,6 @@ joinClient(1,1)
 
 
 connectServers(0,1)
-
-time.sleep(0.2)
 
 stabilize()
 '''

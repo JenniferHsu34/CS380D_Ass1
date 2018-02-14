@@ -4,11 +4,10 @@ import pickle
 from vclock import vclock
 import io
 import sys
+import time
 from random import randint
 
 def recvAll(socket, length):
-    socket.listen()
-    socket.accept()
     data = b''
     while True:
         packet = socket.recv(length)
@@ -18,6 +17,15 @@ def recvAll(socket, length):
 
 sendPorts = [randint(2602,29999),randint(2602,29999)]
 receivePorts  = [randint(2602,29999),randint(2602,29999)]
+
+
+debugV = 0
+def debug(s):
+    global  debugV
+    lsss = [str(debugV) for i in range(20)]
+    print(str(s)  + str(lsss))
+    debugV = debugV +1
+
 class server(threading.Thread):
 
     def __init__(self, sid, port):
@@ -30,12 +38,13 @@ class server(threading.Thread):
         self.host = socket.gethostname()
         self.lock = threading.Lock()
         self.bindport = self.port -1
+        '''
         #socket for all servers
         self.sSockets  = [socket.socket() for i in range(10)]
         self.sSockets[sid].setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         #send
         self.sSockets[sid].bind((self.host, sendPorts[sid]))
-
+        '''
 
 
 
@@ -60,8 +69,9 @@ class server(threading.Thread):
 
         while True:
             clientM, addr = self.s.accept()  # Establish connection with client.
+            threading.Thread(target=self.on_new_client, args=(clientM, addr)).start()
             print('Server', self.sid, 'receive from', addr, ' >> ', "connected")
-            threading.Thread(target = self.on_new_client, args=(clientM, addr)).start()
+
 
     def on_new_client(self, clientM, addr):
         print("HEre")
@@ -69,15 +79,14 @@ class server(threading.Thread):
             msg = recvAll(clientM, 4096)
             if (msg != b''):
                 self.lock.acquire()
-
                 print('Server', self.sid, 'receive from', addr, ' >> ', msg)
                 file = io.BytesIO(msg)
                 while True:
                     try:
-
                         entry = pickle.load(file)
-
+                        debug(entry)
                         if (isinstance(entry, str)):
+                            debug("fff")
                             self.stabilize()
                         elif (isinstance(entry, tuple)):
                             '''
@@ -167,32 +176,50 @@ class server(threading.Thread):
         self.writeLog.append(newRow)
 
 
+
+
     def sendWriteLog(self,sid):
         #connect !!!!!need transfor sid to sport
         # receive
-        self.sSockets[sid].connect((self.host, receivePorts[sid]))
+        debug(sid)
+        debug(self.sid)
+        s = socket.socket()
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        s.bind((self.host, sendPorts[0]))
+        s.connect((self.host, receivePorts[1]))
 
-        self.sSockets[sid].send(pickle.dumps(("writeLog",self.writeLog,self.vclock)))
+        s.send(pickle.dumps(("writeLog",self.writeLog,self.vclock)))
         return 0
 
-    def receiveWriteLog(self,sid):
-
+    def receiveWriteLog(self):
+        #time.sleep(0.1)
+        #debug(sid)
+        debug(self.sid)
         s = socket.socket()
-        s.bind((self.host,receivePorts[sid]))
-        a = recvAll(s, 4096)
-        return pickle.loads(a)
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        s.bind((self.host,receivePorts[1]))
+        print("!!!!!!!!!!################!!!!!!!!!!!!!!!")
+        s.listen(3)
+        while True:
+            tt, addr = s.accept()
+            a = recvAll(tt, 4096)
+            self.recv = pickle.loads(a)
+            return 0
 
 
     def stabilize(self):
         print("stablestablestablestablestablestablestablestablestable")
         if self.sid == 0:
+            time.sleep(0.1)
             self.sendWriteLog(1)
-            self.receiveWriteLog(1)
+            #self.receiveWriteLog()
         elif self.sid == 1:
-            recvM  = self.receiveWriteLog(0)
-            print(str(recvM))
-            self.antiEntropy(revM[1],revM[2])
-            self.sendWriteLog(0)
+            threading.Thread(target = self.receiveWriteLog(), args=()).start()
+            recvM = self.recv
+            debug(str(recvM))
+            self.antiEntropy(recvM[1],recvM[2])
+            #self.sendWriteLog(0)
+
 
         '''
             self.broadcast() # 4 sendWriteLog
