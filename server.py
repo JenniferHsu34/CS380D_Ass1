@@ -15,8 +15,8 @@ def recvAll(socket, length):
         if len(packet) < length:
             return data
 
-sendPorts = [randint(2602,29999),randint(2602,29999)]
-anyPorts  = [randint(2602,29999),randint(2602,29999)]
+receivePorts = [randint(2602,29999),randint(2602,29999),randint(2602,29999),randint(2602,29999),randint(2602,29999)]
+sendFromPorts  = [randint(2602,29999),randint(2602,29999),randint(2602,29999),randint(2602,29999),randint(2602,29999)]
 
 
 debugV = 0
@@ -87,7 +87,7 @@ class server(threading.Thread):
         while True:
             msg = recvAll(clientM, 4096)
             if (msg != b''):
-                #self.lock.acquire()
+                self.lock.acquire()
                 #print('Server', self.sid, 'receive from', addr, ' >> ', msg)
                 file = io.BytesIO(msg)
                 while True:
@@ -123,7 +123,7 @@ class server(threading.Thread):
                         break
 
                     #self.dicts[self.sid][self.sid].update(insert1)
-                #self.lock.release()
+                self.lock.release()
 
     def update(self, insertPair):
         """
@@ -192,25 +192,25 @@ class server(threading.Thread):
 
 
 
-    def sendWriteLog(self,serverPort):
+    def sendWriteLog(self,toPort):
         #connect !!!!!need transfor sid to sport
         # receive
         #debug(self.sid)
         s = socket.socket()
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        s.bind((self.host, anyPorts[self.sid]))
-        s.connect((self.host, serverPort))
+        s.bind((self.host, sendFromPorts[self.sid]))
+        s.connect((self.host, toPort))
         s.send(pickle.dumps(("writeLog",self.writeLog,self.vclock)))
         return 0
 
     def receiveWriteLog(self):
-        #debug(self.sid)
         s = socket.socket()
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         s.bind((self.host,self.serverPort))
         s.listen(3)
         while True:
-            tt, addr = s.accept()
+            otherWriteLog, addr = s.accept()
+            threading.Thread(target=self.on_otherWriteLog, args=(otherWriteLog)).start()
             a = recvAll(tt, 4096)
             self.recv = pickle.loads(a)
             self.received = True
@@ -225,17 +225,18 @@ class server(threading.Thread):
                 self.received = False
                 break
 
-    def stabilize(self):
+    def stabilize(self, connectedSids):
 
         if self.sid == 0:
-            self.sendWriteLog(sendPorts[1])
+            for toSid in connectedSids:
+                self.sendWriteLog(receivePorts[toSid])
             self.finish_receive()
-        elif self.sid == 1:
+        else:
             self.finish_receive()
             a = self.recv
             print(a)
             self.antiEntropy(a[1], a[2])
-            self.sendWriteLog(sendPorts[0])
+            self.sendWriteLog(receivePorts[0])
 
 
 
