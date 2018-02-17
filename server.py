@@ -114,13 +114,13 @@ class server(threading.Thread):
             if key == self.writeLog[idx][3][0]:
                 value = self.writeLog[idx][3][1]
                 curVersion = self.writeLog[idx][3][2:] + (self.writeLog[idx][1], self.writeLog[idx][2])
-                return compVersion(value, curVersion, tuple(compTuple[1]))
+                return self.compVersion(value, curVersion, tuple(compTuple[1]))
             else:
                 idx -= 1
         # check history
         if key in self.history:
             value = self.history[key][0]
-            return compVersion(value, self.history[key][1:], tuple(compTuple[1]))
+            return self.compVersion(value, self.history[key][1:], tuple(compTuple[1]))
         return 'ERR_KEY'
 
     def compVersion(self, value, curVersion, lastVersion):
