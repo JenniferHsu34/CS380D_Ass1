@@ -67,6 +67,11 @@ def breakConnection(id1, id2):
         clients[id1].join()
     return 0
 
+
+def breakServers(id1, id2):
+    connectedSids[id1].remove(id2)
+    connectedSids[id2].remove(id1)
+
 def createConnection(id1, id2):
     clients[id1].run("connect", serverPort - id2)
     if clients[id1].is_alive():
