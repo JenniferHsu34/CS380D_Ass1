@@ -25,7 +25,7 @@ debugV = 0
 def debug(s):
     global  debugV
     lsss = [str(debugV) for i in range(20)]
-    print(str(s)  + str(lsss))
+    #print(str(s)  + str(lsss))
     debugV = debugV +1
 
 class server(threading.Thread):
