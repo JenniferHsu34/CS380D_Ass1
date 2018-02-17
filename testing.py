@@ -94,7 +94,10 @@ elif testCase == 3:
     put(0,"x", 0)
     #connectServers(0, 1)
     createConnection(0, 1) # c0 with s1
+    time.sleep(0.05)
     put(0,"x", 2) # put x:2 in server 1
+    createConnection(0, 0)
+    time.sleep(0.05)
     get(0, "x") #  ERR_DEP
     #breakServers(0, 1)
     stabilize() # do nothing
