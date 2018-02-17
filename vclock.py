@@ -49,7 +49,7 @@ class vclock:
         They must not be equal in value.
         """
 
-        return (self.vclock != b) and self.compare(self.vclock, b) == 0
+        return (self.vclock != b) and self.compare(b) == 0
 
 '''
 example code

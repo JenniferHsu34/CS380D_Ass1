@@ -3,6 +3,9 @@ import threading
 from random import randint
 import pickle
 
+'''
+lastOpDict = {key:(cid, cTime, sid, sTime),}
+'''
 
 class client(threading.Thread):
 
@@ -12,7 +15,8 @@ class client(threading.Thread):
         self.cid = cid
         self.cport = cport
         self.sport = sport
-
+        self.cTime = 0
+        self.lastOpDict = {}
         self.host = socket.gethostname()
         self.addr = (self.host, self.cport)
 
@@ -23,17 +27,26 @@ class client(threading.Thread):
         self.counter = 0
 
     def get(self, key):
-        self.s.send(pickle.dumps(key))
+        if not self.lastOpDict.has_key(key):
+            self.lastOpDict[key] = [self.cid, 0, 0, 0]
+        self.s.send(pickle.dumps(("get", key, self.lastOpDict[key])))
         msg = self.s.recv(4096)
         value = pickle.loads(msg)
-        return value
+        if value == "ERR_DEP" or value == "ERR_KEY":
+            return value
+        else:
+            self.lastOpDict[key][2:4] = value[1:3]
+            return value[0]
+
 
     def put(self, key, value):
-        insertPair = (key, value)
-        self.s.sendall(pickle.dumps(insertPair))
-        #-----------------debug------------
-        # self.counter = self.counter +1
-        # self.s.send(pickle.dumps(str(self.counter)))
+        self.cTime += 1
+        if not self.lastOpDict.has_key(key):
+            self.lastOpDict[key] = [self.cid, self.cTime, 0, 0]
+        else:
+            self.lastOpDict[key][1] = self.cTime
+        insertTuple = ("put", key, value, self.cid, self.cTime)
+        self.s.sendall(pickle.dumps(insertTuple))
 
 
     def connect(self, sport):
