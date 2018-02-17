@@ -39,7 +39,7 @@ def joinServer (sid):
 def killServer (sid):
    for server in servers:
        if server.sid== sid:
-           t.exit()
+           server.exit()
    return 0
 
 
