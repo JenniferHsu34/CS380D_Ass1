@@ -4,7 +4,7 @@ from random import randint
 import pickle
 
 '''
-lastOpDict = {key:(cid, cTime, sid, sTime),}
+lastOpDict = {key:[cid, cTime, sTime, sid],}
 '''
 
 class client(threading.Thread):

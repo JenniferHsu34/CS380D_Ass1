@@ -4,8 +4,8 @@ import pickle
 from vclock import vclock
 import io
 import sys
-import time
 from random import randint
+import time
 
 def recvAll(socket, length):
     data = b''
@@ -79,13 +79,13 @@ class server(threading.Thread):
                     try:
                         entry = pickle.load(file)
                         debug(entry)
-                        if (entry[0] == "stabilize"):
+                        if entry[0] == "stabilize":
                             debug("fff")
                             self.stabilize(entry[1])
-                        elif (entry[0] == 'writeLog'):
-                            self.update(entry)
-                        else:
-                            value = self.get(entry)
+                        elif entry[0] == 'put':
+                            self.update(entry[1:])
+                        elif entry[0] == 'get':
+                            value = self.get(entry[1:])
                             clientM.send(pickle.dumps(value))
                     except EOFError:
                         break
@@ -93,23 +93,27 @@ class server(threading.Thread):
                     #self.dicts[self.sid][self.sid].update(insert1)
                 self.lock.release()
 
-    def update(self, insertPair):
+    def update(self, insertTuple):
         """
         update writeLog and vClock, called when a write occurs
+        insertTuple = (key, value, cid, cTime)
         """
-        self.vclock.increment()
-        self.updateItem(insertPair)
+        self.updateItem(insertTuple)
         return 0
 
-    def get(self, key):
+    def get(self, compTuple):
         """
         get value by checking wLog and history
+        compTuple = (key, [cid, cTime, sTime, sid])
         """
         # check wLog
         self.vclock.increment()
+        key = compTuple[0]
+
         idx = len(self.writeLog) - 1
         while idx >= 0:
             if key == self.writeLog[idx][3][0]:
+
                 return self.writeLog[idx][3][1]
             else:
                 idx -= 1
@@ -126,7 +130,6 @@ class server(threading.Thread):
         merged = []
         i, j, total = 0, 0, 0
         while i < l1 and j < l2:
-
             if self.writeLog[i] > otherLog[j]:
                 merged.append(otherLog[j])
                 j += 1
@@ -137,7 +140,6 @@ class server(threading.Thread):
             else:
                 merged.append(self.writeLog[i])
                 i += 1
-            #print((i,j,total))
         if i < l1:
             merged.extend(self.writeLog[i:])
         else:
@@ -147,13 +149,14 @@ class server(threading.Thread):
 
         self.vclock.merge(otherVclock.vclock)
         historyTime = min(self.vclock.vclock)
-        while self.writeLog[0][1] <= historyTime:
+        while len(self.writeLog) > 0 and self.writeLog[0][1] <= historyTime:
             insertPair = self.writeLog[0][3]
             self.history[insertPair[0]] = insertPair[1]
             self.writeLog.pop()
 
 
-    def updateItem(self, insertPair): #### what's CLK here ???
+    def updateItem(self, insertPair):
+        self.vclock.increment()
         newRow = (sys.maxsize, self.vclock.getTimestamp(), self.sid, insertPair)
         self.writeLog.append(newRow)
 
