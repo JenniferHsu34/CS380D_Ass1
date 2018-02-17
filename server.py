@@ -15,6 +15,8 @@ def recvAll(socket, length):
         if len(packet) < length:
             return data
 
+
+#ports for communication between servers
 receivePorts = [randint(2602,29999),randint(2602,29999),randint(2602,29999),randint(2602,29999),randint(2602,29999)]
 sendFromPorts  = [randint(2602,29999),randint(2602,29999),randint(2602,29999),randint(2602,29999),randint(2602,29999)]
 
@@ -37,8 +39,8 @@ class server(threading.Thread):
         self.clientPort = clientPort
         self.host = socket.gethostname()
         self.lock = threading.Lock()
+        self.receiveLock = threading.Lock()
         self.received = False
-
 
         threading.Thread.__init__(self)
 
@@ -159,9 +161,6 @@ class server(threading.Thread):
 
 
     def sendWriteLog(self,toPort):
-        #connect !!!!!need transfor sid to sport
-        # receive
-        #debug(self.sid)
         s = socket.socket()
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         s.bind((self.host, sendFromPorts[self.sid]))
@@ -175,19 +174,22 @@ class server(threading.Thread):
         s.bind((self.host,receivePorts[self.sid]))
         s.listen(3)
         while True:
-            otherWriteLog, addr = s.accept()
-            threading.Thread(target=self.on_otherWriteLog, args=(otherWriteLog)).start()
-            a = recvAll(tt, 4096)
-            self.recv = pickle.loads(a)
-            self.received = True
-            break
-        return 0
+            msg, addr = s.accept()
+            threading.Thread(target=self.on_otherWriteLog, args=(msg,) ).start()
+
+
+
+
+    def on_otherWriteLog(self,msg):
+        a = recvAll(msg, 4096)
+        recvM = pickle.loads(a)
+        self.antiEntropy(recvM[1], recvM[2])
+
+
+
     def finish_receive(self):
         while True:
             if self.received == True:
-                recvM = self.recv
-                debug(str(recvM))
-                self.antiEntropy(recvM[1], recvM[2])
                 self.received = False
                 break
 
@@ -210,14 +212,6 @@ class server(threading.Thread):
 
 
 
-        '''
-            self.broadcast() # 4 sendWriteLog
-        else:
-            self.receiveWriteLog()
-            self.antiEntropy()
-            self.sendWriteLog(self.sid+1)
-            self.receiveWriteLog()
-        '''
 
         #time.sleep(1)
         return 0

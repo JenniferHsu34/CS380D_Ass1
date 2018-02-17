@@ -37,8 +37,8 @@ def joinServer (sid):
     servers.append(s)
 
 def killServer (sid):
-   for t in threading.enumerate():
-       if t.get_ident()== sid:
+   for server in servers:
+       if server.sid== sid:
            t.exit()
    return 0
 
@@ -73,7 +73,7 @@ def breakServers(id1, id2):
     connectedSids[id2].remove(id1)
 
 def createConnection(id1, id2):
-    clients[id1].run("connect", serverPort - id2)
+    clients[id1].run("connect", sport(id2))
     if clients[id1].is_alive():
         clients[id1].join()
     return 0
