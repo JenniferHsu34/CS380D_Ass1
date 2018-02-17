@@ -51,7 +51,7 @@ elif testCase == 1:
     get(1, "x")  # 1
     ## critical
     put(0,"x", 4)
-    print 'yo'
+
     time.sleep(0.05)
     get(0, "x")  # 4
     time.sleep(0.05)

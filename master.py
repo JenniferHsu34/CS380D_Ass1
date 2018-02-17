@@ -35,6 +35,7 @@ def joinServer (sid):
     s.start()
     servers.append(s)
 
+
 def killServer (sid):
    for server in servers:
        if server.sid== sid:
