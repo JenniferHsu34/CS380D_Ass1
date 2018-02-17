@@ -24,8 +24,8 @@ sendFromPorts  = [randint(2602,29999),randint(2602,29999),randint(2602,29999),ra
 debugV = 0
 def debug(s):
     global  debugV
-    lsss = [str(debugV) for i in range(20)]
-    print(str(s)  + str(lsss))
+    #lsss = [str(debugV) for i in range(20)]
+    #print(str(s)  + str(lsss))
     debugV = debugV +1
 
 class server(threading.Thread):
@@ -196,13 +196,13 @@ class server(threading.Thread):
 
 
     def on_otherWriteLog(self,msg):
-        #self.receiveLock.acquire()
+        self.receiveLock.acquire()
         a = recvAll(msg, 4096)
         recvM = pickle.loads(a)
         self.antiEntropy(recvM[1], recvM[2])
         debug(11111)
         self.received =self.received +1
-        #self.receiveLock.release()
+        self.receiveLock.release()
 
 
 
@@ -218,14 +218,12 @@ class server(threading.Thread):
     def stabilize(self, connectedSids):
 
         if self.sid == 0:
-            self.finish_receive(1)
-            debug(11111)
+            self.finish_receive(len(connectedSids))
             for toSid in connectedSids:
                 self.sendWriteLog(receivePorts[toSid])
         else:
-            debug(11111)
             self.sendWriteLog(receivePorts[connectedSids[0]])
-            debug(11111)
+
             self.finish_receive(1)
 
 
