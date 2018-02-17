@@ -1,7 +1,7 @@
 import unittest
 import sys
 from master import *
-testCase =3
+testCase =1
 
 debugV = 0
 
@@ -17,7 +17,7 @@ if testCase == 0:
     time.sleep(0.05)
     #time.sleep(1)
     joinClient(0, 0)
-
+    print ("---[TEST 0] should output 1 ERR_DEP 1---")
     put(0,"x", 0)
     breakConnection(0, 0) # c, s
     joinServer(1)
@@ -33,6 +33,7 @@ if testCase == 0:
     get(0, "x") # should get from s0? output 1
 #################################################
 elif testCase == 1:
+    print ("---[TEST 1] should output 0 1 1 1 4 ERR_DEP---")
     # 1 s, 2 c
     joinServer(0)
     time.sleep(0.05)
@@ -60,7 +61,7 @@ elif testCase == 1:
 ##################################################
 elif testCase == 2:
     # 1 s, 2 c
-
+    print ("---[TEST 2] should output 0 1 3 4---")
     joinServer(0)
     time.sleep(0.05)
     joinClient(0, 0)
@@ -78,6 +79,7 @@ elif testCase == 2:
     get(0, "x") # 4
 ###################################################
 elif testCase == 3:
+    print ("---[TEST 3] should output ERR_DEP ERR_DEP 2---")
     #breakservers
     joinServer(0)
     time.sleep(0.05)
