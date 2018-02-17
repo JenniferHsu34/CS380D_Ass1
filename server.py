@@ -109,22 +109,33 @@ class server(threading.Thread):
         # check wLog
         self.vclock.increment()
         key = compTuple[0]
-
         idx = len(self.writeLog) - 1
         while idx >= 0:
             if key == self.writeLog[idx][3][0]:
-
-                return self.writeLog[idx][3][1]
+                value = self.writeLog[idx][3][1]
+                curVersion = self.writeLog[idx][3][2:] + (self.writeLog[idx][1], self.writeLog[idx][2])
+                return compVersion(value, curVersion, tuple(compTuple[1]))
             else:
                 idx -= 1
         # check history
         if key in self.history:
-            return self.history[key]
+            value = self.history[key][0]
+            return compVersion(value, self.history[key][1:], tuple(compTuple[1]))
         return 'ERR_KEY'
+
+    def compVersion(self, value, curVersion, lastVersion):
+        if curVersion[2] < lastVersion[2] or (curVersion[2] == lastVersion[2] and curVersion[3] < lastVersion[3]):
+            return "ERR_DEP"
+        elif curVersion[0] == lastVersion[0] and curVersion[1] < lastVersion[1]:
+            return "ERR_DEP"
+        else:
+            retTumple = (value, curVersion[2], curVersion[3])
+            return retTumple
 
     def antiEntropy(self, otherLog, otherVclock):
         """
         Update wLog and vClock from exchanging with other server.
+        writeLog = [(sys.maxsize, sTime, sid, (key, value, cid, cTime))]
         """
         l1, l2 = len(self.writeLog), len(otherLog)
         merged = []
@@ -150,14 +161,15 @@ class server(threading.Thread):
         self.vclock.merge(otherVclock.vclock)
         historyTime = min(self.vclock.vclock)
         while len(self.writeLog) > 0 and self.writeLog[0][1] <= historyTime:
-            insertPair = self.writeLog[0][3]
-            self.history[insertPair[0]] = insertPair[1]
+            key = self.writeLog[0][3][0]
+            insertTuple = self.writeLog[0][3][1:] + (self.writeLog[0][1], self.writeLog[0][2])
+            self.history[key] = insertTuple
             self.writeLog.pop()
 
 
-    def updateItem(self, insertPair):
+    def updateItem(self, insertTuple):
         self.vclock.increment()
-        newRow = (sys.maxsize, self.vclock.getTimestamp(), self.sid, insertPair)
+        newRow = (sys.maxsize, self.vclock.getTimestamp(), self.sid, insertTuple)
         self.writeLog.append(newRow)
 
 
