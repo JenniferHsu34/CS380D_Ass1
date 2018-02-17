@@ -27,7 +27,7 @@ class client(threading.Thread):
         self.counter = 0
 
     def get(self, key):
-        if not self.lastOpDict.has_key(key):
+        if not key in self.lastOpDict:
             self.lastOpDict[key] = [self.cid, 0, 0, 0]
         self.s.send(pickle.dumps(("get", key, self.lastOpDict[key])))
         msg = self.s.recv(4096)
@@ -41,7 +41,7 @@ class client(threading.Thread):
 
     def put(self, key, value):
         self.cTime += 1
-        if not self.lastOpDict.has_key(key):
+        if not key in self.lastOpDict:
             self.lastOpDict[key] = [self.cid, self.cTime, 0, 0]
         else:
             self.lastOpDict[key][1] = self.cTime
