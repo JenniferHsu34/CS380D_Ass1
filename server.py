@@ -196,16 +196,19 @@ class server(threading.Thread):
 
 
     def on_otherWriteLog(self,msg):
+        self.receiveLock.acquire()
         a = recvAll(msg, 4096)
         recvM = pickle.loads(a)
         self.antiEntropy(recvM[1], recvM[2])
+        self.received =self.received +1
+        self.lock.release()
 
 
 
-    def finish_receive(self):
+    def finish_receive(self, targetNum):
         while True:
-            if self.received == True:
-                self.received = False
+            if self.received == targetNum:
+                self.received = 0
                 break
 
     '''
@@ -214,21 +217,12 @@ class server(threading.Thread):
     def stabilize(self, connectedSids):
 
         if self.sid == 0:
+            self.finish_receive(1)
             for toSid in connectedSids:
                 self.sendWriteLog(receivePorts[toSid])
-            self.finish_receive()
         else:
-
-            self.finish_receive()
-            a = self.recv
-            print(a)
-            self.antiEntropy(a[1], a[2])
             self.sendWriteLog(receivePorts[connectedSids[0]])
+            self.finish_receive(1)
 
-
-
-
-        #time.sleep(1)
-        return 0
 
 
