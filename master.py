@@ -13,7 +13,6 @@ servers = []
 clients = []
 clientPort = randint(30000, 40000)
 masterPort = randint(26002,29999)
-connectedSids = [[],[],[],[],[]]
 
 #print(serverPort,clientPort)
 
