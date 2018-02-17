@@ -35,21 +35,9 @@ class server(threading.Thread):
         self.history = {}
         self.clientM  = ""
         self.clientPort = clientPort
-        self.serverPort = sendPorts[sid]#port + 30
         self.host = socket.gethostname()
         self.lock = threading.Lock()
         self.received = False
-
-
-        #self.bindport = self.port -1
-        '''
-        #socket for all servers
-        self.sSockets  = [socket.socket() for i in range(10)]
-        self.sSockets[sid].setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        #send
-        self.sSockets[sid].bind((self.host, sendPorts[sid]))
-        '''
-
 
 
         threading.Thread.__init__(self)
@@ -67,11 +55,6 @@ class server(threading.Thread):
     def run(self):
 
         self.s = socket.socket()  # Create a socket object
-        '''
-        print('Server started!')
-        print('Server address:', self.host, ':', self.clientPort)
-        print('Waiting for clients...')
-        '''
         self.s.bind((self.host, self.clientPort))  # Bind to the clientPort
         self.s.listen(5)  # Now wait for client connection.
         threading.Thread(target=self.receiveWriteLog, args=()).start()
@@ -94,28 +77,11 @@ class server(threading.Thread):
                     try:
                         entry = pickle.load(file)
                         debug(entry)
-                        if (entry == "stabilize"):
+                        if (entry[0] == "stabilize"):
                             debug("fff")
-                            self.stabilize()
-                        elif (isinstance(entry, tuple)):
-                            '''
-                            if (entry[0] == "server"):
-                            # assume entry is the sid
-                            # bind with the current bind port and output
-                                sid = entry[1]
-                                sport = entry[2]
-                                self.sSockets[sid].bind((self.host, self.bindport))
-                                self.sSockets[sid].connect((self.host, sport))
-                                text = pickle.dumps(("receive",sid))
-                                self.sSockets[sid].send(text)
-                            elif(entry[0] == "receive"):
-                                print ("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-                                clientM.send(b'ffff')
-                                self.sSockets[entry[1]] = clientM
-                                self.sSockets[entry[1]].send(b'ffff')
-                                '''
+                            self.stabilize(entry[1])
+                        elif (entry[0] == 'writeLog'):
                             self.update(entry)
-                            #print("!!!!!!str" + str(entry))
                         else:
                             value = self.get(entry)
                             clientM.send(pickle.dumps(value))
@@ -206,7 +172,7 @@ class server(threading.Thread):
     def receiveWriteLog(self):
         s = socket.socket()
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        s.bind((self.host,self.serverPort))
+        s.bind((self.host,receivePorts[self.sid]))
         s.listen(3)
         while True:
             otherWriteLog, addr = s.accept()
@@ -225,6 +191,9 @@ class server(threading.Thread):
                 self.received = False
                 break
 
+    '''
+    We will send the information to all connected servers and let the sid=0 server start
+    '''
     def stabilize(self, connectedSids):
 
         if self.sid == 0:
@@ -232,11 +201,12 @@ class server(threading.Thread):
                 self.sendWriteLog(receivePorts[toSid])
             self.finish_receive()
         else:
+
             self.finish_receive()
             a = self.recv
             print(a)
             self.antiEntropy(a[1], a[2])
-            self.sendWriteLog(receivePorts[0])
+            self.sendWriteLog(receivePorts[connectedSids[0]])
 
 
 
