@@ -32,6 +32,7 @@ class client(threading.Thread):
         self.s.send(pickle.dumps(("get", key, self.lastOpDict[key])))
         msg = self.s.recv(4096)
         value = pickle.loads(msg)
+
         if value == "ERR_DEP" or value == "ERR_KEY":
             return value
         else:
