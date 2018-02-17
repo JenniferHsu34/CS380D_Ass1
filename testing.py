@@ -1,7 +1,7 @@
 import unittest
 import sys
 from master import *
-testCase =5
+testCase =3
 
 debugV = 0
 
@@ -35,8 +35,10 @@ if testCase == 0:
 elif testCase == 1:
     # 1 s, 2 c
     joinServer(0)
+    time.sleep(0.05)
     joinClient(0, 0)
-    joinClient(1, 1)
+    joinClient(1, 0)
+    time.sleep(0.05)
     put(0,"x", 0)
     put(1,"x", 1)
     put(0,"y", 2)
@@ -48,7 +50,10 @@ elif testCase == 1:
     get(1, "x")  # 1
     ## critical
     put(0,"x", 4)
+    print 'yo'
+    time.sleep(0.05)
     get(0, "x")  # 4
+    time.sleep(0.05)
     breakConnection(0, 0)
     get(0, "x")  # ERR_DEP
 
@@ -57,8 +62,10 @@ elif testCase == 2:
     # 1 s, 2 c
 
     joinServer(0)
+    time.sleep(0.05)
     joinClient(0, 0)
-    joinClient(1, 1)
+    joinClient(1, 0)
+    time.sleep(0.05)
     put(0,"x", 0)
     get(1, "x")  # 0
     put(1,"x", 1)
@@ -68,24 +75,28 @@ elif testCase == 2:
     stabilize()
     get(1, "x")  # 3
     put(0,"x", 4)
-
+    get(0, "x") # 4
 ###################################################
 elif testCase == 3:
     #breakservers
     joinServer(0)
+    time.sleep(0.05)
     joinServer(1)
+    time.sleep(0.05)
     joinServer(2)
+    time.sleep(0.05)
     joinServer(3)
+    time.sleep(0.05)
     joinServer(4)
+    time.sleep(0.05)
     joinClient(0, 0)
+    time.sleep(0.05)
     put(0,"x", 0)
+    #connectServers(0, 1)
     createConnection(0, 1) # c0 with s1
-    breakConnection(0, 0)
-
     put(0,"x", 2) # put x:2 in server 1
-    breakConnection(0, 1) # break server 1
     get(0, "x") #  ERR_DEP
-    breakservers(0, 1)
+    #breakServers(0, 1)
     stabilize() # do nothing
     get(0, "x") #  ERR_DEP
     connectServers(0, 1)
