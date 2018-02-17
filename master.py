@@ -88,7 +88,7 @@ def connectServers (id1,id2):
 def stabilize():
 
     for server in servers:
-        sendToServer(server.sid,("stabilize",connectedSids[server.sid]))
+        sendToServer(server.sid,("stabilize", connectedSids[server.sid]) )
 
 
 

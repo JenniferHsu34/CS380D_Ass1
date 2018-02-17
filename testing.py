@@ -35,6 +35,8 @@ if testCase == 0:
 elif testCase == 1:
     # 1 s, 2 c
     joinServer(0)
+    joinServer(1)
+    connectServers(0,1)
     time.sleep(0.05)
     joinClient(0, 0)
     joinClient(1, 0)
@@ -54,8 +56,8 @@ elif testCase == 1:
     time.sleep(0.05)
     get(0, "x")  # 4
     time.sleep(0.05)
-    breakConnection(0, 0)
     get(0, "x")  # ERR_DEP
+    print("finished")
 
 ##################################################
 elif testCase == 2:

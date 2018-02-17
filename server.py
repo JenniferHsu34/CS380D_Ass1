@@ -25,7 +25,7 @@ debugV = 0
 def debug(s):
     global  debugV
     lsss = [str(debugV) for i in range(20)]
-    #print(str(s)  + str(lsss))
+    print(str(s)  + str(lsss))
     debugV = debugV +1
 
 class server(threading.Thread):
@@ -40,7 +40,7 @@ class server(threading.Thread):
         self.host = socket.gethostname()
         self.lock = threading.Lock()
         self.receiveLock = threading.Lock()
-        self.received = False
+        self.received = 0
 
         threading.Thread.__init__(self)
 
@@ -80,7 +80,7 @@ class server(threading.Thread):
                         entry = pickle.load(file)
                         debug(entry)
                         if entry[0] == "stabilize":
-                            debug("fff")
+                            debug(entry)
                             self.stabilize(entry[1])
                         elif entry[0] == 'put':
                             self.update(entry[1:])
@@ -196,12 +196,13 @@ class server(threading.Thread):
 
 
     def on_otherWriteLog(self,msg):
-        self.receiveLock.acquire()
+        #self.receiveLock.acquire()
         a = recvAll(msg, 4096)
         recvM = pickle.loads(a)
         self.antiEntropy(recvM[1], recvM[2])
+        debug(11111)
         self.received =self.received +1
-        self.lock.release()
+        #self.receiveLock.release()
 
 
 
@@ -212,16 +213,19 @@ class server(threading.Thread):
                 break
 
     '''
-    We will send the information to all connected servers and let the sid=0 server start
+    We will receive the information from all connected servers and let the sid=0 server start
     '''
     def stabilize(self, connectedSids):
 
         if self.sid == 0:
             self.finish_receive(1)
+            debug(11111)
             for toSid in connectedSids:
                 self.sendWriteLog(receivePorts[toSid])
         else:
+            debug(11111)
             self.sendWriteLog(receivePorts[connectedSids[0]])
+            debug(11111)
             self.finish_receive(1)
 
 
