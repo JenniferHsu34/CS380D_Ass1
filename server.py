@@ -24,7 +24,7 @@ sendFromPorts  = [randint(2602,29999),randint(2602,29999),randint(2602,29999),ra
 debugV = 0
 def debug(s):
     global  debugV
-    #lsss = [str(debugV) for i in range(20)]
+    lsss = [str(debugV) for i in range(20)]
     #print(str(s)  + str(lsss))
     debugV = debugV +1
 
@@ -46,8 +46,18 @@ class server(threading.Thread):
         threading.Thread.__init__(self)
 
 
-    def printStore(self):
+    def printStore2(self):
         dict = self.history
+        for entry in self.writeLog:
+            valueTuple = entry[3][1:] + (entry[1], entry[2])
+            dict[entry[3][0]] = valueTuple
+        print(str(dict))
+        del dict
+
+    def printStore(self):
+        dict = {}
+        for key, valueTuple in self.history:
+            dict[key] = valueTuple[0]
         for entry in self.writeLog:
             dict[entry[3][0]] = entry[3][1]
         print(str(dict))
@@ -82,6 +92,7 @@ class server(threading.Thread):
                 while True:
                     try:
                         entry = pickle.load(file)
+
                         debug(entry)
                         if entry[0] == "stabilize":
                             debug(entry)
@@ -89,6 +100,7 @@ class server(threading.Thread):
                         elif entry[0] == 'put':
                             self.update(entry[1:])
                         elif entry[0] == 'get':
+
                             value = self.get(entry[1:])
                             clientM.send(pickle.dumps(value))
                     except EOFError:
