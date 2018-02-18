@@ -6,6 +6,7 @@ import io
 import sys
 from random import randint
 import time
+import datetime
 
 def recvAll(socket, length):
     data = b''
@@ -56,8 +57,9 @@ class server(threading.Thread):
 
     def printStore(self):
         dict = {}
-        for key, valueTuple in self.history:
-            dict[key] = valueTuple[0]
+        if self.history:
+            for key, valueTuple in self.history:
+                dict[key] = valueTuple[0]
         for entry in self.writeLog:
             dict[entry[3][0]] = entry[3][1]
         print(str(dict))
@@ -175,14 +177,14 @@ class server(threading.Thread):
         del merged
 
         self.vclock.merge(otherVclock.vclock)
-        '''
+
         historyTime = min(self.vclock.vclock)
         while len(self.writeLog) > 0 and self.writeLog[0][1] <= historyTime:
             key = self.writeLog[0][3][0]
             insertTuple = self.writeLog[0][3][1:] + (self.writeLog[0][1], self.writeLog[0][2])
             self.history[key] = insertTuple
             self.writeLog.pop()
-        '''
+
 
     def updateItem(self, insertTuple):
         self.vclock.increment()
@@ -234,15 +236,15 @@ class server(threading.Thread):
     '''
     def stabilize(self, connectedSids):
         if self.sid == 0:
+            print(datetime.datetime.now())
             self.finish_receive(len(connectedSids))
-
             for toSid in connectedSids:
                 self.sendWriteLog(receivePorts[toSid])
         else:
             self.sendWriteLog(receivePorts[connectedSids[0]])
 
             self.finish_receive(1)
-
+            print(datetime.datetime.now())
 
 
 
