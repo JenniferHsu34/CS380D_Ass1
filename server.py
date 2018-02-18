@@ -175,13 +175,14 @@ class server(threading.Thread):
         del merged
 
         self.vclock.merge(otherVclock.vclock)
+        '''
         historyTime = min(self.vclock.vclock)
         while len(self.writeLog) > 0 and self.writeLog[0][1] <= historyTime:
             key = self.writeLog[0][3][0]
             insertTuple = self.writeLog[0][3][1:] + (self.writeLog[0][1], self.writeLog[0][2])
             self.history[key] = insertTuple
             self.writeLog.pop()
-
+        '''
 
     def updateItem(self, insertTuple):
         self.vclock.increment()
@@ -216,7 +217,6 @@ class server(threading.Thread):
         a = recvAll(msg, 4096)
         recvM = pickle.loads(a)
         self.antiEntropy(recvM[1], recvM[2])
-        debug(11111)
         self.received =self.received +1
         self.receiveLock.release()
 
@@ -225,6 +225,7 @@ class server(threading.Thread):
     def finish_receive(self, targetNum):
         while True:
             if self.received == targetNum:
+
                 self.received = 0
                 break
 
@@ -232,15 +233,17 @@ class server(threading.Thread):
     We will receive the information from all connected servers and let the sid=0 server start
     '''
     def stabilize(self, connectedSids):
-
         if self.sid == 0:
             self.finish_receive(len(connectedSids))
+
             for toSid in connectedSids:
                 self.sendWriteLog(receivePorts[toSid])
         else:
             self.sendWriteLog(receivePorts[connectedSids[0]])
 
             self.finish_receive(1)
+
+
 
 
     def exit(self):

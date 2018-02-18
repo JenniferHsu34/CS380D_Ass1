@@ -88,16 +88,16 @@ def createConnection(id1, id2):
         clients[id1].join()
     return 0
 def connectServers (id1,id2):
-    sendToServer(id1,("server",id2,sport(id2)))
     connectedSids[id1].append(id2)
     connectedSids[id2].append(id1)
+    sendToServer(id1,("server",id2,sport(id2)))
     #sendToServer(id2,("server",id2, sport(id2)))
 
 def stabilize():
 
     for server in servers:
         if connectedSids[server.sid]:
-            connectedSids.sort()
+            connectedSids[server.sid].sort()
             sendToServer(server.sid,("stabilize", connectedSids[server.sid]) )
 
 

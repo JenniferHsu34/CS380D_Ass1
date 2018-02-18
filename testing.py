@@ -1,7 +1,7 @@
 import unittest
 import sys
 from master import *
-testCase =1
+testCase =0
 
 debugV = 0
 '''
@@ -14,25 +14,36 @@ def debug(s):
     debugV = debugV + 1
 
 
+def setup(numServers):
+   for i in range(numServers):
+      joinServer(i)
+      time.sleep(0.05)
+      joinClient(i, i)
+
+   for i in range(numServers):
+      for j in range(numServers):
+         if(i<j):
+           connectServers(i,j)
+
+
+
+
 if testCase == 0:
-    joinServer(0)
+    setup(3)
     time.sleep(0.05)
-    #time.sleep(1)
-    joinClient(0, 0)
-    print ("---[TEST 0] should output 1 ERR_DEP 1---")
-    put(0,"x", 0)
-    #breakConnection(0, 0) # c, s
-    joinServer(1)
+    for i in range(100):
+        put(randint(0, 2), randint(0, 20), i)
+    printStore(0)
+    printStore(1)
+    printStore(2)
     time.sleep(0.05)
-    createConnection(0, 1)
-    put(0,"x", 1) # now, data should only send to server1
-    get(0, "x") # 1
-    #breakConnection(0, 1)
-    createConnection(0, 0) # now, c0 only connect to s0
-    get(0, "x") # should output ERR_DEP
-    createConnection(0, 1)
     stabilize()
-    get(0, "x") # should get from s0? output 1
+    time.sleep(1)
+    printStore(0)
+    printStore(1)
+    printStore(2)
+    print("finished")
+
 #################################################
 elif testCase == 1:
     print ("---[TEST 1] should output 0 1 1 1 4 ERR_DEP---")
