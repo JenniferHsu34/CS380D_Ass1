@@ -41,6 +41,7 @@ class server(threading.Thread):
         self.lock = threading.Lock()
         self.receiveLock = threading.Lock()
         self.received = 0
+        self.exitFlag = False
 
         threading.Thread.__init__(self)
 
@@ -61,9 +62,12 @@ class server(threading.Thread):
         self.s.listen(5)  # Now wait for client connection.
         threading.Thread(target=self.receiveWriteLog, args=()).start()
         while True:
+            if self.exitFlag:
+                break
             clientM, addr = self.s.accept()  # Establish connection with client.
             threading.Thread(target=self.on_new_client, args=(clientM, addr)).start()
             #print('Server', self.sid, 'receive from', addr, ' >> ', "connected")
+        print("exit!!!!")
 
 
 
@@ -227,4 +231,5 @@ class server(threading.Thread):
             self.finish_receive(1)
 
 
-
+    def exit(self):
+        self.exitFlag = True

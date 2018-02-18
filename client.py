@@ -25,6 +25,8 @@ class client(threading.Thread):
         self.s.bind(self.addr)
         self.s.connect((self.host, self.sport))
         self.counter = 0
+        #getAnswer store the value get from the server
+        self.getAnswer = 0
 
     def get(self, key):
         if not key in self.lastOpDict:
@@ -64,7 +66,7 @@ class client(threading.Thread):
         if status == "put":
             self.put(arg0, arg1)
         elif status == "get":
-            print(self.get(arg0))
+            self.getAnswer = self.get(arg0)
         elif status == "break":
             self.close()
         elif status == "connect":

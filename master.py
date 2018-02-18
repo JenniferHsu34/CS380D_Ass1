@@ -14,6 +14,7 @@ clients = []
 clientPort = randint(30000, 40000)
 masterPort = randint(26002,29999)
 connectedSids = [[],[],[],[],[]]
+clientConnected = [-1,-1,-1,-1,-1]
 #print(serverPort,clientPort)
 
 
@@ -45,6 +46,7 @@ def killServer (sid):
 
 def joinClient (cid, sid):
     c=client(cid, clientPort - cid, sport(sid))
+    clientConnected[cid] = sid
     clients.append(c)
 
 
@@ -61,7 +63,7 @@ def get(cid, key):
     clients[cid].run("get", key)
     if clients[cid].is_alive():
         clients[cid].join()
-    return 0
+    return clients[cid].getAnswer
 
 def breakConnection(id1, id2):
     clients[id1].run("break")
@@ -75,8 +77,14 @@ def breakServers(id1, id2):
     connectedSids[id2].remove(id1)
 
 def createConnection(id1, id2):
+    if clientConnected[id1] == id2:
+        print("client "+ str(id1) + " already connected server " + str(id2))
+        return 0
+    clientConnected[id1] = id2
     clients[id1].run("connect", sport(id2))
+
     if clients[id1].is_alive():
+
         clients[id1].join()
     return 0
 def connectServers (id1,id2):
