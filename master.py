@@ -97,6 +97,7 @@ def stabilize():
 
     for server in servers:
         if connectedSids[server.sid]:
+            connectedSids.sort()
             sendToServer(server.sid,("stabilize", connectedSids[server.sid]) )
 
 
