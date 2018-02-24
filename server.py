@@ -6,6 +6,7 @@ import io
 import sys
 from random import randint
 import time
+import datetime
 
 def recvAll(socket, length):
     data = b''
@@ -56,8 +57,9 @@ class server(threading.Thread):
 
     def printStore(self):
         dict = {}
-        for key, valueTuple in self.history:
-            dict[key] = valueTuple[0]
+        if self.history:
+            for key, valueTuple in self.history:
+                dict[key] = valueTuple[0]
         for entry in self.writeLog:
             dict[entry[3][0]] = entry[3][1]
         print(str(dict))
@@ -76,37 +78,36 @@ class server(threading.Thread):
                 break
             clientM, addr = self.s.accept()  # Establish connection with client.
             threading.Thread(target=self.on_new_client, args=(clientM, addr)).start()
-            #print('Server', self.sid, 'receive from', addr, ' >> ', "connected")
         print("exit!!!!")
 
 
 
     def on_new_client(self, clientM, addr):
-        #print("HEre")
         while True:
             msg = recvAll(clientM, 4096)
             if (msg != b''):
                 self.lock.acquire()
-                #print('Server', self.sid, 'receive from', addr, ' >> ', msg)
                 file = io.BytesIO(msg)
                 while True:
                     try:
                         entry = pickle.load(file)
 
                         debug(entry)
-                        if entry[0] == "stabilize":
-                            debug(entry)
-                            self.stabilize(entry[1])
+                        if entry[0] == "stabilizeCenter":
+                            self.stabilizeCenter(entry[1])
+
+                        elif entry[0] == "stabilizeSender":
+                            self.stabilizeSender(entry[1])
+
                         elif entry[0] == 'put':
                             self.update(entry[1:])
-                        elif entry[0] == 'get':
 
+                        elif entry[0] == 'get':
                             value = self.get(entry[1:])
                             clientM.send(pickle.dumps(value))
                     except EOFError:
                         break
 
-                    #self.dicts[self.sid][self.sid].update(insert1)
                 self.lock.release()
 
     def update(self, insertTuple):
@@ -175,6 +176,7 @@ class server(threading.Thread):
         del merged
 
         self.vclock.merge(otherVclock.vclock)
+
         historyTime = min(self.vclock.vclock)
         while len(self.writeLog) > 0 and self.writeLog[0][1] <= historyTime:
             key = self.writeLog[0][3][0]
@@ -216,7 +218,6 @@ class server(threading.Thread):
         a = recvAll(msg, 4096)
         recvM = pickle.loads(a)
         self.antiEntropy(recvM[1], recvM[2])
-        debug(11111)
         self.received =self.received +1
         self.receiveLock.release()
 
@@ -225,22 +226,24 @@ class server(threading.Thread):
     def finish_receive(self, targetNum):
         while True:
             if self.received == targetNum:
+
                 self.received = 0
                 break
 
     '''
     We will receive the information from all connected servers and let the sid=0 server start
     '''
-    def stabilize(self, connectedSids):
+    def stabilizeCenter(self, connectedSids):
 
-        if self.sid == 0:
-            self.finish_receive(len(connectedSids))
-            for toSid in connectedSids:
-                self.sendWriteLog(receivePorts[toSid])
-        else:
-            self.sendWriteLog(receivePorts[connectedSids[0]])
+        print(datetime.datetime.now())
+        self.finish_receive(len(connectedSids))
+        for toSid in connectedSids:
+            self.sendWriteLog(receivePorts[toSid])
 
-            self.finish_receive(1)
+    def stabilizeSender(self, centerSid):
+        self.sendWriteLog(receivePorts[centerSid])
+        self.finish_receive(1)
+
 
 
     def exit(self):

@@ -15,7 +15,6 @@ clientPort = randint(30000, 40000)
 masterPort = randint(26002,29999)
 connectedSids = [[],[],[],[],[]]
 clientConnected = [-1,-1,-1,-1,-1]
-#print(serverPort,clientPort)
 
 
 def sport(sid):
@@ -40,7 +39,11 @@ def joinServer (sid):
 def killServer (sid):
    for server in servers:
        if server.sid== sid:
+           for i in connectedSids[sid]:
+               connectedSids[i].remove(sid)
+           connectedSids[sid].clear()
            server.exit()
+           break
    return 0
 
 
@@ -66,10 +69,15 @@ def get(cid, key):
     return clients[cid].getAnswer
 
 def breakConnection(id1, id2):
-    clients[id1].run("break")
-    if clients[id1].is_alive():
-        clients[id1].join()
-    return 0
+    if id2 in clientConnected[id1]:
+        clientConnected[id1].remove(id2)
+
+
+
+#    clients[id1].run("break")
+#    if clients[id1].is_alive():
+#        clients[id1].join()
+#    return 0
 
 
 def breakServers(id1, id2):
@@ -82,23 +90,23 @@ def createConnection(id1, id2):
         return 0
     clientConnected[id1] = id2
     clients[id1].run("connect", sport(id2))
-
     if clients[id1].is_alive():
-
         clients[id1].join()
     return 0
 def connectServers (id1,id2):
-    sendToServer(id1,("server",id2,sport(id2)))
     connectedSids[id1].append(id2)
     connectedSids[id2].append(id1)
-    #sendToServer(id2,("server",id2, sport(id2)))
+    sendToServer(id1,("server",id2,sport(id2)))
 
 def stabilize():
 
     for server in servers:
-        if connectedSids[server.sid]:
-            connectedSids.sort()
-            sendToServer(server.sid,("stabilize", connectedSids[server.sid]) )
+        currentSid = server.sid
+        if connectedSids[currentSid]:
+            if currentSid < min(connectedSids[currentSid]):
+                sendToServer(currentSid,("stabilizeCenter", connectedSids[currentSid]))
+                for sid in connectedSids[currentSid]:
+                    sendToServer(sid, ("stabilizeSender", currentSid))
 
 
 
