@@ -15,7 +15,6 @@ clientPort = randint(30000, 40000)
 masterPort = randint(26002,29999)
 connectedSids = [[],[],[],[],[]]
 clientConnected = [-1,-1,-1,-1,-1]
-#print(serverPort,clientPort)
 
 
 def sport(sid):
@@ -70,10 +69,15 @@ def get(cid, key):
     return clients[cid].getAnswer
 
 def breakConnection(id1, id2):
-    clients[id1].run("break")
-    if clients[id1].is_alive():
-        clients[id1].join()
-    return 0
+    if id2 in clientConnected[id1]:
+        clientConnected[id1].remove(id2)
+
+
+
+#    clients[id1].run("break")
+#    if clients[id1].is_alive():
+#        clients[id1].join()
+#    return 0
 
 
 def breakServers(id1, id2):

@@ -78,18 +78,15 @@ class server(threading.Thread):
                 break
             clientM, addr = self.s.accept()  # Establish connection with client.
             threading.Thread(target=self.on_new_client, args=(clientM, addr)).start()
-            #print('Server', self.sid, 'receive from', addr, ' >> ', "connected")
         print("exit!!!!")
 
 
 
     def on_new_client(self, clientM, addr):
-        #print("HEre")
         while True:
             msg = recvAll(clientM, 4096)
             if (msg != b''):
                 self.lock.acquire()
-                #print('Server', self.sid, 'receive from', addr, ' >> ', msg)
                 file = io.BytesIO(msg)
                 while True:
                     try:
@@ -111,7 +108,6 @@ class server(threading.Thread):
                     except EOFError:
                         break
 
-                    #self.dicts[self.sid][self.sid].update(insert1)
                 self.lock.release()
 
     def update(self, insertTuple):
