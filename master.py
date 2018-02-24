@@ -32,19 +32,32 @@ def sendToServer (sid,text):
 
 def joinServer (sid):
     s=server(sid, sport(sid))
+    for oldServer in servers:
+        oldSid = oldServer.sid
+        connectedSids[oldSid].append(sid)
+        connectedSids[sid].append(oldSid)
     s.start()
     servers.append(s)
 
 
+
+
 def killServer (sid):
-   for server in servers:
+
+    for server in servers:
        if server.sid== sid:
            for i in connectedSids[sid]:
                connectedSids[i].remove(sid)
            connectedSids[sid].clear()
            server.exit()
-           break
-   return 0
+    for i in range(5):
+        if clientConnected[i] == sid:
+            clientConnected[i] = -1
+
+
+
+
+
 
 
 def joinClient (cid, sid):
@@ -69,8 +82,8 @@ def get(cid, key):
     return clients[cid].getAnswer
 
 def breakConnection(id1, id2):
-    if id2 in clientConnected[id1]:
-        clientConnected[id1].remove(id2)
+    if id2 == clientConnected[id1]:
+        clientConnected[id1] = -1
 
 
 

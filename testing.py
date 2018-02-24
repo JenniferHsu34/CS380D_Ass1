@@ -15,15 +15,13 @@ def debug(s):
 
 
 def setup(numServers):
+
    for i in range(numServers):
       joinServer(i)
       time.sleep(0.05)
       joinClient(i, i)
 
-   for i in range(numServers):
-      for j in range(numServers):
-         if(i<j):
-           connectServers(i,j)
+
 
 
 c = [randint(0, 4) for i in range(400)]
@@ -31,14 +29,17 @@ key = [randint(0, 2000)for i in range(400)]
 value = [randint(0, 100)for i in range(400)]
 
 if testCase == 0:
-    setup(5)
+    setup(3)
+    put(0, 'x', 0)
+    breakConnection(0, 0)
+    createConnection(0, 1)
     time.sleep(0.05)
-    for j in range(3):
-        for i in range(80):
-            put(c[j+i*3], key[j+i*3], value[j+i*3])
-        stabilize()
-        print ("ROUND " + str(j))
-
+    put(0, 'x', 1)
+    print (get(0, 'x'))
+    breakConnection(0, 1)
+    createConnection(0, 0)
+    time.sleep(0.05)
+    print (get(0, 'x'))
 
     print("finished")
 
