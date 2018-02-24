@@ -96,13 +96,16 @@ class server(threading.Thread):
                         entry = pickle.load(file)
 
                         debug(entry)
-                        if entry[0] == "stabilize":
-                            debug(entry)
-                            self.stabilize(entry[1])
+                        if entry[0] == "stabilizeCenter":
+                            self.stabilizeCenter(entry[1])
+
+                        elif entry[0] == "stabilizeSender":
+                            self.stabilizeSender(entry[1])
+
                         elif entry[0] == 'put':
                             self.update(entry[1:])
-                        elif entry[0] == 'get':
 
+                        elif entry[0] == 'get':
                             value = self.get(entry[1:])
                             clientM.send(pickle.dumps(value))
                     except EOFError:
@@ -234,17 +237,16 @@ class server(threading.Thread):
     '''
     We will receive the information from all connected servers and let the sid=0 server start
     '''
-    def stabilize(self, connectedSids):
-        if self.sid == 0:
-            print(datetime.datetime.now())
-            self.finish_receive(len(connectedSids))
-            for toSid in connectedSids:
-                self.sendWriteLog(receivePorts[toSid])
-        else:
-            self.sendWriteLog(receivePorts[connectedSids[0]])
+    def stabilizeCenter(self, connectedSids):
 
-            self.finish_receive(1)
-            print(datetime.datetime.now())
+        print(datetime.datetime.now())
+        self.finish_receive(len(connectedSids))
+        for toSid in connectedSids:
+            self.sendWriteLog(receivePorts[toSid])
+
+    def stabilizeSender(self, centerSid):
+        self.sendWriteLog(receivePorts[centerSid])
+        self.finish_receive(1)
 
 
 
