@@ -91,9 +91,10 @@ class server(threading.Thread):
                 file = io.BytesIO(msg)
                 #print('Server', self.sid, 'receive from', addr, ' >> ', msg)
                 while True:
+                    if self.exitFlag:
+                        break
                     try:
                         entry = pickle.load(file)
-
                         debug(entry)
                         if entry[0] == "stabilizeCenter":
                             self.stabilizeCenter(entry[1])
@@ -215,6 +216,8 @@ class server(threading.Thread):
         s.bind((self.host,receivePorts[self.sid]))
         s.listen(3)
         while True:
+            if self.exitFlag:
+                break
             msg, addr = s.accept()
             threading.Thread(target=self.on_otherWriteLog, args=(msg,) ).start()
 
