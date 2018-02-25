@@ -55,11 +55,6 @@ def killServer (sid):
             clientConnected[i] = -1
 
 
-
-
-
-
-
 def joinClient (cid, sid):
     c=client(cid, clientPort - cid, sport(sid))
     clientConnected[cid] = sid
@@ -94,8 +89,11 @@ def breakConnection(id1, id2):
 
 
 def breakServers(id1, id2):
-    connectedSids[id1].remove(id2)
-    connectedSids[id2].remove(id1)
+    try:
+        connectedSids[id1].remove(id2)
+        connectedSids[id2].remove(id1)
+    except OSError:
+        pass
 
 def createConnection(id1, id2):
     if clientConnected[id1] == id2:

@@ -57,11 +57,12 @@ class client(threading.Thread):
         self.vclock.increment()
         insertTuple = ("put", key, value, self.vclock)
         self.s.sendall(pickle.dumps(insertTuple))
-        msg = self.s.recv(4096)
+        msg = self.s.recv(1024)
         #print(self.addr, "receive ", msg)
         timeTuple = pickle.loads(msg)
         self.vclock.merge(timeTuple[0])
         self.lastOpDict[key] = (timeTuple[1], timeTuple[2])
+
 
 
     def connect(self, sport):

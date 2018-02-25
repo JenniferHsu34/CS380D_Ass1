@@ -19,7 +19,7 @@ def recvAll(socket, length):
 
 #ports for communication between servers
 receivePorts = [randint(2602,29999),randint(2602,29999),randint(2602,29999),randint(2602,29999),randint(2602,29999)]
-sendFromPorts = [randint(2602,29999),randint(2602,29999),randint(2602,29999),randint(2602,29999),randint(2602,29999)]
+sendFromPorts  = [randint(2602,29999),randint(2602,29999),randint(2602,29999),randint(2602,29999),randint(2602,29999)]
 
 
 debugV = 0
@@ -198,6 +198,8 @@ class server(threading.Thread):
         self.writeLog.append(newRow)
 
 
+
+
     def sendWriteLog(self,toPort):
         s = socket.socket()
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -247,7 +249,7 @@ class server(threading.Thread):
     def stabilizeSender(self, centerSid):
         self.sendWriteLog(receivePorts[centerSid])
         self.finish_receive(1)
-        print(datetime.datetime.now())
+        #print(datetime.datetime.now())
 
 
     def exit(self):
