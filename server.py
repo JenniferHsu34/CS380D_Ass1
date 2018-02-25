@@ -70,6 +70,7 @@ class server(threading.Thread):
     def run(self):
 
         self.s = socket.socket()  # Create a socket object
+        self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.s.bind((self.host, self.clientPort))  # Bind to the clientPort
         self.s.listen(5)  # Now wait for client connection.
         threading.Thread(target=self.receiveWriteLog, args=()).start()
