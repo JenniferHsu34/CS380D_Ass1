@@ -112,14 +112,39 @@ def connectServers (id1,id2):
     sendToServer(id1,("server",id2,sport(id2)))
 
 def stabilize():
-
+    nodes = []
+    vis = {} # visited_list
+    connectedComponents = [] #
     for server in servers:
-        currentSid = server.sid
-        if connectedSids[currentSid]:
-            if currentSid < min(connectedSids[currentSid]):
-                sendToServer(currentSid,("stabilizeCenter", connectedSids[currentSid]))
-                for sid in connectedSids[currentSid]:
-                    sendToServer(sid, ("stabilizeSender", currentSid))
+        node = server.sid
+        nodes.append(node)
+        vis[node] = False
+    for a in nodes:
+        tempComponent = []
+        if vis[a] == False:
+            dfs(a,vis,tempComponent)
+        if len(tempComponent) > 0:
+            connectedComponents.append(tempComponent)
+
+    for component in connectedComponents:
+        centerId = min(component)
+        component.remove(centerId)
+        sendToServer(centerId, ("stabilizeCenter", component))
+        for sendId in component:
+            sendToServer(sendId, ("stabilizeSender", centerId))
+
+
+
+
+
+
+# basic depth first search
+def dfs(node,vis,tempComponent):
+     vis[node] = True
+     tempComponent.append(node)
+     for neighbour in connectedSids[node]:
+         if vis[neighbour] == False:
+             dfs(neighbour, vis, tempComponent)
 
 
 
