@@ -2,12 +2,12 @@ import unittest
 import sys
 from master import *
 import time
-testCase = 61
+import datetime
+testCase = 51000
 
+bug = [0, ]
 debugV = 0
-'''
-dict = {key : (value, cid, cTime, sTime ,sid), }
-'''
+
 
 def debug(s):
     global debugV
@@ -28,6 +28,17 @@ def setup(numServers):
 c = [randint(0, 4) for i in range(400)]
 key = [randint(0, 2000)for i in range(400)]
 value = [randint(0, 100)for i in range(400)]
+
+# setup(5)
+#
+# for i in range(1):
+#     print(datetime.datetime.now())
+#     for j in range(40):
+#         put(c[i*40+j], key[i*40+j], value[i*40+j])
+#     stabilize()
+#     print("finish ", i)
+
+
 
 if testCase == 0:
     setup(3)
@@ -83,15 +94,15 @@ elif testCase == 2:
     joinClient(1, 0)
     time.sleep(0.05)
     put(0,"x", 0)
-    get(1, "x")  # 0
+    print(get(1, "x"))  # 0
     put(1,"x", 1)
     put(0,"x", 2)
     put(0,"x", 3)
-    get(1, "x")  # 1 !!! really important
+    print(get(1, "x"))  # 1 !!! really important
     stabilize()
-    get(1, "x")  # 3
+    print(get(1, "x"))  # 3
     put(0,"x", 4)
-    get(0, "x") # 4
+    print(get(0, "x")) # 4
     print("finished")
 ###################################################
 elif testCase == 3:
@@ -128,9 +139,9 @@ elif testCase == 31: # killserver
     setup(3)
     put (0, 0, 0)
     killServer(0)
-    print get(0,0)
+    print(get(0,0))
     createConnection(0, 0)
-    print get(0, 0)
+    print(get(0, 0))
 
 elif testCase == 41: # printStore
     setup(5)
@@ -144,13 +155,13 @@ elif testCase == 51: # Read your write
     put(0, 'x', 0)
     breakConnection(0, 0)
     createConnection(0, 1)
-    #time.sleep(0.05)
+    time.sleep(0.05)
     put(0, 'x', 1)
-    print get(0, 'x')
+    print(get(0, 'x'))
     breakConnection(0, 1)
     createConnection(0, 0)
     time.sleep(0.05)
-    print get(0, 'x')
+    print(get(0, 'x'))
 
 
 
@@ -164,8 +175,8 @@ elif testCase == 52: # Read your write 2, change
     breakConnection(1,1)
     createConnection(1, 0)
 
-    print get(0, 'x')
-    print get(1, 'x')
+    print(get(0, 'x'))
+    print(get(1, 'x'))
 
 elif testCase == 61: # test partition # break
     setup(5)
@@ -186,10 +197,10 @@ elif testCase ==8: # 1 server, 2 client
     put(1, 'x', 1)
     put(0, 'x', 2)
     put(0, 'x', 3)
-    print get(0, 'x') # 3
-    print get(1, 'x') # 3
+    print(get(0, 'x')) # 3
+    print(get(1, 'x')) # 3
     stabilize()
-    print get(1, 'x')  # 3
+    print(get(1, 'x')) # 3
 
 
 elif testCase == 9:
@@ -200,11 +211,11 @@ elif testCase == 9:
         put(1, 'x', 100+i)
     breakConnection(1, 1)
     createConnection(1, 0)
-    print get(1, 'x') # ERR_DEP
+    print(get(1, 'x')) # ERR_DEP
 
     breakConnection(0, 0)
     createConnection(0, 1)
-    print get(0, 'x')  # ERR_DEP
+    print(get(0, 'x'))  # ERR_DEP
 
 elif testCase == 10:  # 1 key ---- test time
     setup(5)
@@ -225,14 +236,14 @@ elif testCase == 10:  # 1 key ---- test time
             get(j, 'x')
     end = time.time()
     getTime = (end - start)
-    print '[only 1 key] put: ', putTime/50.0, ', get: ', getTime/50.0,  ', stable: ', stableTime
+    print('[only 1 key] put: ', putTime/50.0, ', get: ', getTime/50.0,  ', stable: ', stableTime)
 
     start = time.time()
     for j in range(5):
         for i in range(10):
             put(j, j * 10 + i, j * 10 + i)
     end = time.time()
-    print '1'
+    print('1')
     putTime = (end - start)
     start = time.time()
 
@@ -241,7 +252,7 @@ elif testCase == 10:  # 1 key ---- test time
 
     end = time.time()
 
-    print '2'
+    print('2')
     stableTime = (end - start)
     start = time.time()
     for j in range(5):
@@ -249,8 +260,8 @@ elif testCase == 10:  # 1 key ---- test time
             get(j, str(j * 10 + i))
     end = time.time()
     getTime = (end - start)
-    print '3'
-    print '[many keys] put: ', putTime/50.0, ', get: ', getTime/50.0,  ', stable: ', stableTime
+    print('3')
+    print('[many keys] put: ', putTime/50.0, ', get: ', getTime/50.0,  ', stable: ', stableTime)
 elif testCase == 11:  # 1 key ---- test time
     setup(5)
 
@@ -288,16 +299,3 @@ elif testCase == 100:
             real = gt[j][i] if gt[j][i]!= None else 'ERR_KEY'
 
 
-else:
-    # TESTING
-    setup(3)
-
-
-    print ('-----before stablize')
-    debug(get(0, "x"))  # should get 2
-    print ('get x from s1: (exp 1)')
-    get(1, "x")  # should get 1
-    stabilize()
-    # time.sleep(1)
-    print ('-----after stablize')
-    get(1, "x")  # should get 1

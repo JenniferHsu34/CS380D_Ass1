@@ -19,7 +19,7 @@ def recvAll(socket, length):
 
 #ports for communication between servers
 receivePorts = [randint(2602,29999),randint(2602,29999),randint(2602,29999),randint(2602,29999),randint(2602,29999)]
-sendFromPorts  = [randint(2602,29999),randint(2602,29999),randint(2602,29999),randint(2602,29999),randint(2602,29999)]
+sendFromPorts = [randint(2602,29999),randint(2602,29999),randint(2602,29999),randint(2602,29999),randint(2602,29999)]
 
 
 debugV = 0
@@ -33,10 +33,10 @@ class server(threading.Thread):
 
     def __init__(self, sid, clientPort):
         self.sid = sid
-        self.vclock = vclock(5, sid)
+        self.vclock = vclock(10, sid)
         self.writeLog = []
         self.history = {}
-        self.clientM  = ""
+        self.clientM = ""
         self.clientPort = clientPort
         self.host = socket.gethostname()
         self.lock = threading.Lock()
@@ -47,21 +47,21 @@ class server(threading.Thread):
         threading.Thread.__init__(self)
 
 
-    def printStore2(self):
-        dict = self.history
-        for entry in self.writeLog:
-            valueTuple = entry[3][1:] + (entry[1], entry[2])
-            dict[entry[3][0]] = valueTuple
-        print(str(dict))
-        del dict
+    # def printStore2(self):
+    #     dict = self.history
+    #     for entry in self.writeLog:
+    #         valueTuple = entry[3][1:] + (entry[1], entry[2])
+    #         dict[entry[3][0]] = valueTuple
+    #     print(str(dict))
+    #     del dict
 
     def printStore(self):
         dict = {}
-        if self.history:
-            for key, valueTuple in self.history:
-                dict[key] = valueTuple[0]
+        # if self.history:
+        #     for key, valueTuple in self.history:
+        #         dict[key] = valueTuple[0]
         for entry in self.writeLog:
-            dict[entry[3][0]] = entry[3][1]
+            dict[entry[2][0]] = entry[2][1]
         print(str(dict))
         del dict
 
@@ -88,6 +88,7 @@ class server(threading.Thread):
             if (msg != b''):
                 self.lock.acquire()
                 file = io.BytesIO(msg)
+                #print('Server', self.sid, 'receive from', addr, ' >> ', msg)
                 while True:
                     try:
                         entry = pickle.load(file)
@@ -101,10 +102,13 @@ class server(threading.Thread):
 
                         elif entry[0] == 'put':
                             self.update(entry[1:])
+                            timeTuple = (self.vclock, self.vclock.getTimestamp(), self.sid)
+                            clientM.sendall(pickle.dumps(timeTuple))
 
                         elif entry[0] == 'get':
-                            value = self.get(entry[1:])
-                            clientM.send(pickle.dumps(value))
+                            valueTuple = self.get(entry[1:])
+                            clientM.sendall(pickle.dumps(valueTuple))
+
                     except EOFError:
                         break
 
@@ -113,7 +117,7 @@ class server(threading.Thread):
     def update(self, insertTuple):
         """
         update writeLog and vClock, called when a write occurs
-        insertTuple = (key, value, cid, cTime)
+        insertTuple = (key, value, vclock)
         """
         self.updateItem(insertTuple)
         return 0
@@ -121,38 +125,37 @@ class server(threading.Thread):
     def get(self, compTuple):
         """
         get value by checking wLog and history
-        compTuple = (key, [cid, cTime, sTime, sid])
+        compTuple = (key, vclock, (sTime, sid))
         """
         # check wLog
+        self.vclock.merge(compTuple[1])
         self.vclock.increment()
         key = compTuple[0]
         idx = len(self.writeLog) - 1
         while idx >= 0:
-            if key == self.writeLog[idx][3][0]:
-                value = self.writeLog[idx][3][1]
-                curVersion = self.writeLog[idx][3][2:] + (self.writeLog[idx][1], self.writeLog[idx][2])
-                return self.compVersion(value, curVersion, tuple(compTuple[1]))
+            if key == self.writeLog[idx][2][0]:
+                value = self.writeLog[idx][2][1]
+                curVersion = (self.writeLog[idx][0], self.writeLog[idx][1])
+                return self.compVersion(value, curVersion, compTuple[2])
             else:
                 idx -= 1
         # check history
-        if key in self.history:
-            value = self.history[key][0]
-            return self.compVersion(value, self.history[key][1:], tuple(compTuple[1]))
-        return 'ERR_KEY'
+        # if key in self.history:
+        #     value = self.history[key][0]
+        #     return self.compVersion(value, self.history[key][1:], tuple(compTuple[1]))
+        return (self.vclock, 'ERR_KEY')
 
     def compVersion(self, value, curVersion, lastVersion):
-        if curVersion[2] < lastVersion[2] or (curVersion[2] == lastVersion[2] and curVersion[3] < lastVersion[3]):
-            return "ERR_DEP"
-        elif curVersion[0] == lastVersion[0] and curVersion[1] < lastVersion[1]:
-            return "ERR_DEP"
+        if curVersion[0] < lastVersion[0] or (curVersion[0] == lastVersion[0] and curVersion[1] < lastVersion[1]):
+            return (self.vclock, "ERR_DEP")
         else:
-            retTumple = (value, curVersion[2], curVersion[3])
+            retTumple = (self.vclock, value, curVersion[0], curVersion[1])
             return retTumple
 
     def antiEntropy(self, otherLog, otherVclock):
         """
         Update wLog and vClock from exchanging with other server.
-        writeLog = [(sys.maxsize, sTime, sid, (key, value, cid, cTime))]
+        writeLog = [(sTime, sid, (key, value))]
         """
         l1, l2 = len(self.writeLog), len(otherLog)
         merged = []
@@ -175,22 +178,24 @@ class server(threading.Thread):
         self.writeLog = merged
         del merged
 
-        self.vclock.merge(otherVclock.vclock)
+        self.vclock.merge(otherVclock)
 
-        historyTime = min(self.vclock.vclock)
-        while len(self.writeLog) > 0 and self.writeLog[0][1] <= historyTime:
-            key = self.writeLog[0][3][0]
-            insertTuple = self.writeLog[0][3][1:] + (self.writeLog[0][1], self.writeLog[0][2])
-            self.history[key] = insertTuple
-            self.writeLog.pop()
+        # historyTime = min(self.vclock.vclock)
+        # while len(self.writeLog) > 0 and self.writeLog[0][1] <= historyTime:
+        #     key = self.writeLog[0][3][0]
+        #     insertTuple = self.writeLog[0][3][1:] + (self.writeLog[0][1], self.writeLog[0][2])
+        #     self.history[key] = insertTuple
+        #     self.writeLog.pop()
 
 
     def updateItem(self, insertTuple):
+        '''
+        insertTuple = (key, value, vclock)
+        '''
+        self.vclock.merge(insertTuple[2])
         self.vclock.increment()
-        newRow = (sys.maxsize, self.vclock.getTimestamp(), self.sid, insertTuple)
+        newRow = (self.vclock.getTimestamp(), self.sid, insertTuple[0:2])
         self.writeLog.append(newRow)
-
-
 
 
     def sendWriteLog(self,toPort):
@@ -198,7 +203,7 @@ class server(threading.Thread):
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         s.bind((self.host, sendFromPorts[self.sid]))
         s.connect((self.host, toPort))
-        s.send(pickle.dumps(("writeLog",self.writeLog,self.vclock)))
+        s.send(pickle.dumps(("writeLog", self.writeLog, self.vclock)))
         return 0
 
     def receiveWriteLog(self):
@@ -235,7 +240,6 @@ class server(threading.Thread):
     '''
     def stabilizeCenter(self, connectedSids):
 
-        print(datetime.datetime.now())
         self.finish_receive(len(connectedSids))
         for toSid in connectedSids:
             self.sendWriteLog(receivePorts[toSid])
@@ -243,7 +247,7 @@ class server(threading.Thread):
     def stabilizeSender(self, centerSid):
         self.sendWriteLog(receivePorts[centerSid])
         self.finish_receive(1)
-
+        print(datetime.datetime.now())
 
 
     def exit(self):

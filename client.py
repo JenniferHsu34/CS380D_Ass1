@@ -2,20 +2,24 @@ import socket
 import threading
 from random import randint
 import pickle
+from vclock import vclock
 
 '''
-lastOpDict = {key:[cid, cTime, sTime, sid],}
+lastOpDict = {key:(sTime, sid),}
 '''
 
 class client(threading.Thread):
 
     def __init__(self, cid, cport, sport):
         threading.Thread.__init__(self)
-
         self.cid = cid
         self.cport = cport
         self.sport = sport
-        self.cTime = 0
+        '''
+        here self.cid+5
+        '''
+        self.vclock = vclock(10, self.cid+5)
+
         self.lastOpDict = {}
         self.host = socket.gethostname()
         self.addr = (self.host, self.cport)
@@ -29,27 +33,35 @@ class client(threading.Thread):
         self.getAnswer = 0
 
     def get(self, key):
+        '''
+        valueTuple = (vclock, value, sTime, sid)
+        '''
         if not key in self.lastOpDict:
-            self.lastOpDict[key] = [self.cid, 0, 0, 0]
-        self.s.send(pickle.dumps(("get", key, self.lastOpDict[key])))
+            self.lastOpDict[key] = (0, 0)
+        self.s.send(pickle.dumps(("get", key, self.vclock, self.lastOpDict[key])))
         msg = self.s.recv(4096)
-        value = pickle.loads(msg)
-
-        if value == "ERR_DEP" or value == "ERR_KEY":
-            return value
+        #print(self.addr, "receive ", msg)
+        valueTuple = pickle.loads(msg)
+        self.vclock.merge(valueTuple[0])
+        if valueTuple[1] == "ERR_DEP" or valueTuple[1] == "ERR_KEY":
+            return valueTuple[1]
         else:
-            self.lastOpDict[key][2:4] = value[1:3]
-            return value[0]
+            self.lastOpDict[key] = (valueTuple[2], valueTuple[3])
+            return valueTuple[1]
 
 
     def put(self, key, value):
-        self.cTime += 1
-        if not key in self.lastOpDict:
-            self.lastOpDict[key] = [self.cid, self.cTime, 0, 0]
-        else:
-            self.lastOpDict[key][1] = self.cTime
-        insertTuple = ("put", key, value, self.cid, self.cTime)
+        '''
+        timeTuple = (vclock, sTime, sid)
+        '''
+        self.vclock.increment()
+        insertTuple = ("put", key, value, self.vclock)
         self.s.sendall(pickle.dumps(insertTuple))
+        msg = self.s.recv(4096)
+        #print(self.addr, "receive ", msg)
+        timeTuple = pickle.loads(msg)
+        self.vclock.merge(timeTuple[0])
+        self.lastOpDict[key] = (timeTuple[1], timeTuple[2])
 
 
     def connect(self, sport):
