@@ -3,7 +3,7 @@ import sys
 from master import *
 import time
 import datetime
-testCase = 51000
+testCase = 200
 
 bug = [0, ]
 debugV = 0
@@ -19,7 +19,7 @@ def setup(numServers):
 
    for i in range(numServers):
       joinServer(i)
-      time.sleep(0.05)
+      time.sleep(0.01)
       joinClient(i, i)
 
 
@@ -29,14 +29,15 @@ c = [randint(0, 4) for i in range(400)]
 key = [randint(0, 2000)for i in range(400)]
 value = [randint(0, 100)for i in range(400)]
 
-setup(5)
-
-for i in range(1):
-    print(datetime.datetime.now())
-    for j in range(40):
-        put(c[i*40+j], key[i*40+j], value[i*40+j])
-    stabilize()
-    print("finish ", i)
+# startTime = time.time()
+# setup(5)
+# for i in range(1):
+#     for j in range(40):
+#         put(c[i*40+j], key[i*40+j], value[i*40+j])
+#     stabilize()
+#     print("finish ", i)
+#     put(0, "x", 1)
+#     print(time.time()-startTime)
 
 
 if testCase == 0:
@@ -297,4 +298,41 @@ elif testCase == 100:
         for j in range(numServer):
             real = gt[j][i] if gt[j][i]!= None else 'ERR_KEY'
 
+elif testCase == 200:
+    num = 4
+    setup(num)
+    # for i in range(num):
+    #     for j in range(num-i-1):
+    #         breakServers(i, j+i+1)
+    # connectServers(0, 1)
+    # connectServers(2, 1)
+    for i in range(num):
+        put(i, 0, i)
+    # breakConnection(3, 3)
+    # createConnection(3, 1)
+    stabilize()
+    for i in range(num):
+        print(get(i, 0))
+    for i in range(num):
+        printStore(i)
 
+    killServer(num-1)
+    time.sleep(1)
+    joinServer(num-1)
+    time.sleep(0.01)
+    for i in range(num):
+        put(i, 0, i+100)
+
+    joinServer(num)
+    time.sleep(0.01)
+    joinClient(num, num)
+    num += 1
+    for i in range(num):
+        print(get(i, 0))
+
+    stabilize()
+    for i in range(num):
+        print(get(i, 0))
+    for i in range(num):
+        printStore(i)
+    

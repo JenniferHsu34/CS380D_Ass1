@@ -79,6 +79,7 @@ class server(threading.Thread):
                 break
             clientM, addr = self.s.accept()  # Establish connection with client.
             threading.Thread(target=self.on_new_client, args=(clientM, addr)).start()
+        self.s.close()
         print("exit!!!!")
 
 

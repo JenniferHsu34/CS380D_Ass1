@@ -45,7 +45,7 @@ def joinServer (sid):
 def killServer (sid):
 
     for server in servers:
-       if server.sid== sid:
+       if server.sid == sid:
            for i in connectedSids[sid]:
                connectedSids[i].remove(sid)
            connectedSids[sid].clear()
@@ -53,6 +53,11 @@ def killServer (sid):
     for i in range(5):
         if clientConnected[i] == sid:
             clientConnected[i] = -1
+
+
+
+
+
 
 
 def joinClient (cid, sid):
