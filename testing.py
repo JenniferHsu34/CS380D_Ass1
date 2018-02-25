@@ -29,15 +29,14 @@ c = [randint(0, 4) for i in range(400)]
 key = [randint(0, 2000)for i in range(400)]
 value = [randint(0, 100)for i in range(400)]
 
-# setup(5)
-#
-# for i in range(1):
-#     print(datetime.datetime.now())
-#     for j in range(40):
-#         put(c[i*40+j], key[i*40+j], value[i*40+j])
-#     stabilize()
-#     print("finish ", i)
+setup(5)
 
+for i in range(1):
+    print(datetime.datetime.now())
+    for j in range(40):
+        put(c[i*40+j], key[i*40+j], value[i*40+j])
+    stabilize()
+    print("finish ", i)
 
 
 if testCase == 0:
