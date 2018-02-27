@@ -54,7 +54,7 @@ for i in range(1):
     stabilize()
     print("finish ", i)
 '''
-testCase = 83
+testCase = 92
 
 if testCase == 0: # test Total order. Read-after-write
     print ('This case involves 1 clients with 2 servers. c0 put a k-v0 in s0 then switch to s1 and put k-v1. Then, we performs get during c0 connecting to s1 and get ERR_DEP')
@@ -482,4 +482,27 @@ elif testCase == 101:  # Eventually Consistency
             values[j] = get(j, keys[i])
         for k in range(numClient):
             print('get: ', values[k], ', ground truth is: ', values[(k + 1) % numClient])
+
+
+elif testCase == 92:
+    c = [randint(5, 9) for i in range(40)]
+    key = [randint(0, 40) for i in range(40)]
+    value = [randint(0, 100) for i in range(40)]
+    start = time.time()
+    joinServer(4)
+    joinServer(2)
+    joinServer(3)
+    joinServer(1)
+    joinServer(0)
+    joinClient(5, 4)
+    joinClient(6, 2)
+    joinClient(7, 1)
+    joinClient(9, 0)
+    joinClient(8, 3)
+    for i in range(40):
+        put(c[i], key[i], value[i])
+    stabilize()
+    put(5, 0, 0)
+    print(time.time()-start)
+
 
