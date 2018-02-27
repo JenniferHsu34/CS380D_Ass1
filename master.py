@@ -10,16 +10,22 @@ import sys
 import os
 serverPort = randint(2000,26000)
 
-servers = []
-clients = []
+servers = [-1]*5
+clients = [-1]*10
 clientPort = randint(30000, 40000)
-masterPort = randint(26002,29999)
+masterPort = randint(26002, 29999)
 connectedSids = [[],[],[],[],[]]
-clientConnected = [-1,-1,-1,-1,-1]
+clientConnected = [-1]*10
+
+'''
+server id in [0, 1, 2, 3, 4],
+client id in [5, 6, 7, 8, 9]
+'''
 
 
 def sport(sid):
     return serverPort - sid*20
+
 
 def sendToServer (sid,text):
     host = socket.gethostname()
@@ -32,39 +38,33 @@ def sendToServer (sid,text):
     s.close()
 
 def joinServer (sid):
-    s=server(sid, sport(sid))
+    s = server(sid, sport(sid))
     for oldServer in servers:
-        oldSid = oldServer.sid
-        connectedSids[oldSid].append(sid)
-        connectedSids[sid].append(oldSid)
+        if oldServer != -1:
+            oldSid = oldServer.sid
+            connectedSids[oldSid].append(sid)
+            connectedSids[sid].append(oldSid)
     s.start()
-    servers.append(s)
-
-
+    servers[sid] = s
+    time.sleep(0.05)
 
 
 def killServer (sid):
 
-    for server in servers:
-       if server.sid == sid:
-           for i in connectedSids[sid]:
-               connectedSids[i].remove(sid)
-           connectedSids[sid].clear()
-           server.exit()
+    for i in connectedSids[sid]:
+        connectedSids[i].remove(sid)
+    connectedSids[sid].clear()
+    servers[sid].exit()
+    servers[sid] = -1
     for i in range(5):
         if clientConnected[i] == sid:
             clientConnected[i] = -1
 
 
-
-
-
-
-
 def joinClient (cid, sid):
-    c=client(cid, clientPort - cid, sport(sid))
+    c = client(cid, clientPort - cid, sport(sid))
     clientConnected[cid] = sid
-    clients.append(c)
+    clients[cid] = c
 
 
 def printStore(sid):
@@ -82,17 +82,22 @@ def get(cid, key):
         clients[cid].join()
     return clients[cid].getAnswer
 
+
 def breakConnection(id1, id2):
-    if id2 == clientConnected[id1]:
-        clientConnected[id1] = -1
+    # id2 should be server id
+    if id2 >= 5:
+        id1, id2 = id2, id1
+    if id1 <= 4:
+        breakServers(id1, id2)
+    else:
+        breakClientServer(id1, id2)
 
-
-
-#    clients[id1].run("break")
-#    if clients[id1].is_alive():
-#        clients[id1].join()
-#    return 0
-
+def breakClientServer(cid, sid):
+    if sid == clientConnected[cid]:
+        clientConnected[cid] = -1
+        clients[cid].run("break")
+        if clients[cid].is_alive():
+            clients[cid].join()
 
 def breakServers(id1, id2):
     try:
@@ -102,18 +107,27 @@ def breakServers(id1, id2):
         pass
 
 def createConnection(id1, id2):
-    if clientConnected[id1] == id2:
-        print("client "+ str(id1) + " already connected server " + str(id2))
+    # id2 should be server id
+    if id2 >= 5:
+        id1, id2 = id2, id1
+    if id1 <= 4:
+        connectServers(id1, id2)
+    else:
+        connectClientServer(id1, id2)
+
+def connectClientServer(cid, sid):
+    if clientConnected[cid] == sid:
+        print("client " + str(cid) + " already connected server " + str(sid))
         return 0
-    clientConnected[id1] = id2
-    clients[id1].run("connect", sport(id2))
-    if clients[id1].is_alive():
-        clients[id1].join()
+    clientConnected[cid] = sid
+    clients[cid].run("connect", sport(sid))
+    if clients[cid].is_alive():
+        clients[cid].join()
     return 0
+
 def connectServers (id1,id2):
     connectedSids[id1].append(id2)
     connectedSids[id2].append(id1)
-    sendToServer(id1,("server",id2,sport(id2)))
 
 def stabilize():
     nodes = []
@@ -136,10 +150,6 @@ def stabilize():
         sendToServer(centerId, ("stabilizeCenter", component))
         for sendId in component:
             sendToServer(sendId, ("stabilizeSender", centerId))
-
-
-
-
 
 
 # basic depth first search
