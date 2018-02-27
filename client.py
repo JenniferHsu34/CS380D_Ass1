@@ -15,10 +15,7 @@ class client(threading.Thread):
         self.cid = cid
         self.cport = cport
         self.sport = sport
-        '''
-        here self.cid+5
-        '''
-        self.vclock = vclock(10, self.cid+5)
+        self.vclock = vclock(10, self.cid)
 
         self.lastOpDict = {}
         self.host = socket.gethostname()

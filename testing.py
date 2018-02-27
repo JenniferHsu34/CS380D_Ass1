@@ -383,6 +383,7 @@ elif testCase == 200:
     time.sleep(1)
     joinServer(num - 1)
     time.sleep(0.01)
+    createConnection(num-1, num-1)
     for i in range(num):
         put(i, 0, i + 100)
 
