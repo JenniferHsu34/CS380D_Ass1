@@ -134,9 +134,10 @@ def stabilize():
     vis = {} # visited_list
     connectedComponents = [] #
     for server in servers:
-        node = server.sid
-        nodes.append(node)
-        vis[node] = False
+        if server != -1:
+            node = server.sid
+            nodes.append(node)
+            vis[node] = False
     for a in nodes:
         tempComponent = []
         if vis[a] == False:
@@ -162,7 +163,7 @@ def dfs(node,vis,tempComponent):
 
 
 def process(line):
-    print line
+    print (line)
     command = line.split(' ')
     API = command[0]
     if API ==  'joinServer':
@@ -170,7 +171,7 @@ def process(line):
     elif API == 'killServer':
         killServer(int(command[1]))
     elif API == 'joinClient':
-        print int(command[1]), ' ',  int(command[2])
+        print (int(command[1]), ' ',  int(command[2]))
         joinClient(int(command[1]), int(command[2]))
     elif API == 'breakConnection':
         breakconnection(int(command[1]), int(command[2]))
