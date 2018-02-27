@@ -3,7 +3,7 @@ import sys
 from master import *
 import time
 import datetime
-testCase = 200
+testCase = 51000
 
 bug = [0, ]
 debugV = 0
@@ -19,7 +19,7 @@ def setup(numServers):
 
    for i in range(numServers):
       joinServer(i)
-      time.sleep(0.01)
+      time.sleep(0.05)
       joinClient(i, i)
 
 
@@ -29,15 +29,14 @@ c = [randint(0, 4) for i in range(400)]
 key = [randint(0, 2000)for i in range(400)]
 value = [randint(0, 100)for i in range(400)]
 
-# startTime = time.time()
-# setup(5)
-# for i in range(1):
-#     for j in range(40):
-#         put(c[i*40+j], key[i*40+j], value[i*40+j])
-#     stabilize()
-#     print("finish ", i)
-#     put(0, "x", 1)
-#     print(time.time()-startTime)
+setup(5)
+
+for i in range(1):
+    print(datetime.datetime.now())
+    for j in range(40):
+        put(c[i*40+j], key[i*40+j], value[i*40+j])
+    stabilize()
+    print("finish ", i)
 
 
 if testCase == 0:
@@ -172,25 +171,57 @@ elif testCase == 52: # Read your write 2, change
     put(1,'x', 1)
     breakConnection(0, 0)
     createConnection(0, 1)
-    breakConnection(1,1)
+    breakConnection(1, 1)
     createConnection(1, 0)
 
     print(get(0, 'x'))
     print(get(1, 'x'))
 
-elif testCase == 61: # test partition # break
-    setup(5)
-    for j in range(5):
+elif testCase == 53: # READ your write
+    setup(3)
+    for i in range(100):
+        put(0, 'x', i)
+    time.sleep(0.05)
+    for i in range(10):
+        put(1, 'x', 100+i)
+
+    breakConnection(1, 1)
+    createConnection(1, 0)
+    print(get(1, 'x')) # 99
+
+    breakConnection(0, 0)
+    createConnection(0, 1)
+    print(get(0, 'x'))  # ERR_DEP
+    stabilize()
+    print(get(1, 'x'))  # 99
+    print(get(0, 'x'))  # 99
+elif testCase == 61: # test partition # break. if we only has 2 server, if we break s1 and s2. then when we do stablize, it doesn't do anything
+    numSer = 2
+    setup(numSer)
+    for j in range(numSer):
         for i in range(10):
             put(j, 'x', j*10+i)
-    #breakServers(2, 3) # ****
+    breakServers(0, 1) # ****
     stabilize()
     time.sleep(2)
-    for i in range (5):
+    for i in range (numSer):
+        printStore(i)
+
+
+elif testCase == 62: # test partition # break. if we only has 5 server, if we break s1 and s2. then XXXXXXXXX
+    numSer = 5
+    setup(numSer)
+    for j in range(numSer):
+        for i in range(10):
+            put(j, 'x', j*10+i)
+    breakServers(0, 1) # ****
+    stabilize()
+    time.sleep(2)
+    for i in range (numSer):
         printStore(i)
         #print get(i, 'x')
 
-elif testCase ==8: # 1 server, 2 client
+elif testCase ==7: # 1 server, 2 client
     setup(3)
     breakConnection(1,1)
     createConnection(1, 0)
@@ -203,21 +234,8 @@ elif testCase ==8: # 1 server, 2 client
     print(get(1, 'x')) # 3
 
 
-elif testCase == 9:
-    setup(3)
-    for i in range(100):
-        put(0, 'x', i)
-    for i in range(10):
-        put(1, 'x', 100+i)
-    breakConnection(1, 1)
-    createConnection(1, 0)
-    print(get(1, 'x')) # ERR_DEP
 
-    breakConnection(0, 0)
-    createConnection(0, 1)
-    print(get(0, 'x'))  # ERR_DEP
-
-elif testCase == 10:  # 1 key ---- test time
+elif testCase == 91:  #time ----
     setup(5)
     start = time.time()
     for j in range(5):
@@ -329,10 +347,32 @@ elif testCase == 200:
     num += 1
     for i in range(num):
         print(get(i, 0))
+elif testCase == 101:  # every client connect to same server
+            numServer = 5
+            numClient = 5
+            setup(numServer)
+            # eys = list(string.ascii_lowercase)
+            keys = ['a', 'b', 'c']
+            gt = [['ERR_KEY'] * len(keys) for i in range(numClient)]  # ground truth
+            for i in xrange(10):
+                for j in range(numClient):
+                    kId, v = genPair(len(keys), 10000)
+                    gt[j][kId] = v
+                    # print 'put ', j, keys[kId], v
+                    put(j, keys[kId], v)
+                    time.sleep(0.05)
+                    get(j, keys[kId])
+            stabilize()
+            # after stabilize, for each key, check if the values getting from all clients are the same
+            for i in range (len(keys)):
+                values = ['None']*numClient
+                for j in range (numClient):
+                    values[j] = get(j, keys[i])
+                for k in range(numClient):
+                    print('get: ', values[k], ', ground truth is: ', values[(k+1)%numClient])
 
     stabilize()
     for i in range(num):
         print(get(i, 0))
     for i in range(num):
         printStore(i)
-    

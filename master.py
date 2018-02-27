@@ -6,7 +6,8 @@ from random import randint
 import time
 from ctypes import c_int, addressof
 import pickle
-
+import sys
+import os
 serverPort = randint(2000,26000)
 
 servers = []
@@ -150,5 +151,37 @@ def dfs(node,vis,tempComponent):
              dfs(neighbour, vis, tempComponent)
 
 
+def process(line):
+    print line
+    command = line.split(' ')
+    API = command[0]
+    if API ==  'joinServer':
+        joinServer(int(command[1]))
+    elif API == 'killServer':
+        killServer(int(command[1]))
+    elif API == 'joinClient':
+        print int(command[1]), ' ',  int(command[2])
+        joinClient(int(command[1]), int(command[2]))
+    elif API == 'breakConnection':
+        breakconnection(int(command[1]), int(command[2]))
+    elif API == 'createConnection':
+        breakconnection(int(command[1]), int(command[2]))
+    elif API == 'stabilize':
+        stabilize()
+    elif API == 'printStore':
+        printStore(int(command[1]))
+    elif API == 'put':
+        put(int(command[1]), command[2], command[3])
+    elif API == 'get':
+        get(int(command[1]), command[2])
+    else:
+        print ('Invalid command')
 
-
+if __name__ == "__main__":
+    filename = sys.argv[1] #'command.txt'
+    with open(filename, 'rb') as f:
+        while True:
+            line = f.readline()
+            if not line: break
+            process(line)
+    os._exit(1)
