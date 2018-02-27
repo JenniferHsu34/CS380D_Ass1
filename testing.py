@@ -292,9 +292,9 @@ elif testCase == 81:  # Test Monotonic Reads
                 # get value maintain .
                 v = get(k, keys[j])
                 if v < readDicts[k][keys[j]]:
-                    print '[ERROR!] Not satisfy for Monotonic Reads'
+                    print('[ERROR!] Not satisfy for Monotonic Reads')
                 readDicts[k][keys[j]] = v
-    print 'done Monotonic Reads check'
+    print('done Monotonic Reads check')
     os._exit(1)
 
 elif testCase == 82: # Test Monotonic Reads.
@@ -314,7 +314,7 @@ elif testCase == 82: # Test Monotonic Reads.
     breakConnection(8, 4)
     createConnection(8, 3)
     print (get(8, 'x'), ' this value should be ERR_DEP because it switch to previous server') # get ERR_DEP
-    print 'done Monotonic Reads check'
+    print('done Monotonic Reads check')
     os._exit(1)
 
 elif testCase == 83: # Test Monotonic Reads.
@@ -330,11 +330,10 @@ elif testCase == 83: # Test Monotonic Reads.
     breakConnection(8, 4)
     createConnection(8, 3)
     print (get(8, 'x'))
-    #time.sleep(0.5)
     breakConnection(8, 3)
     createConnection(8, 4)
-    print (get(8, 'x'), ' this value should be 1. Symmetric test with 8-2') # get ERR_DEP
-    print 'done Monotonic Reads check'
+    print(get(8, 'x'), ' this value should be 1. Symmetric test with 8-2') # get ERR_DEP
+    print('done Monotonic Reads check')
     os._exit(1)
 
 elif testCase == 91:  # test performance ----

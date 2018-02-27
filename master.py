@@ -90,7 +90,6 @@ def breakConnection(id1, id2):
         breakServers(id1, id2)
     else:
         breakClientServer(id1, id2)
-    time.sleep(0.05)
 
 def breakClientServer(cid, sid):
     if sid == clientConnected[cid]:
