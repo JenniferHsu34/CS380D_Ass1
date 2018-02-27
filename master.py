@@ -74,7 +74,6 @@ def put(cid, key, value):
     clients[cid].run("put", key, value)
     if clients[cid].is_alive():
         clients[cid].join()
-    return 0
 
 def get(cid, key):
     clients[cid].run("get", key)
@@ -114,16 +113,15 @@ def createConnection(id1, id2):
         connectServers(id1, id2)
     else:
         connectClientServer(id1, id2)
+    time.sleep(0.05)
 
 def connectClientServer(cid, sid):
     if clientConnected[cid] == sid:
         print("client " + str(cid) + " already connected server " + str(sid))
-        return 0
     clientConnected[cid] = sid
     clients[cid].run("connect", sport(sid))
     if clients[cid].is_alive():
         clients[cid].join()
-    return 0
 
 def connectServers (id1,id2):
     connectedSids[id1].append(id2)
@@ -186,7 +184,7 @@ def process(line):
     elif API == 'get':
         get(int(command[1]), command[2])
     else:
-        print ('Invalid command')
+        print('Invalid command')
 
 if __name__ == "__main__":
     filename = sys.argv[1] #'command.txt'
