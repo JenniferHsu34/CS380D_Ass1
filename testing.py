@@ -26,82 +26,139 @@ def setup(numServers):
     for i in range(numServers):
         joinServer(i)
         time.sleep(0.01)
-        joinClient(i, i)
+        joinClient(i+5, i)
 
 
-c = [randint(0, 4) for i in range(400)]
-key = [randint(0, 2000) for i in range(400)]
-value = [randint(0, 100) for i in range(400)]
+testCase = 'eventualConsistency'
+# here you can put: eventualConsistency read-your-write monotonicReads
+# joinServer killServer printStore joinClient breakConnection createConnection stabilize put get
+if testCase =='eventualConsistency':
+    print ('test [eventual Consistency] property ')
+    numServer = 5
+    numClient = 5
+    setup(numServer)
+    keys = list(string.ascii_lowercase)
 
-# startTime = time.time()
-# setup(5)
-# for i in range(1):
-#     for j in range(40):
-#         put(c[i*40+j], key[i*40+j], value[i*40+j])
-#     stabilize()
-#     print("finish ", i)
-#     put(0, "x", 1)
-#     print(time.time()-startTime)
+    err = 0
+    gt = [['ERR_KEY'] * len(keys) for i in range(numClient)]  # ground truth
+    for i in xrange(10):
+        for j in range(numClient):
+            kId, v = genPair(len(keys), 10000)
+            gt[j][kId] = v
+            # print 'put ', j, keys[kId], v
+            put(j+5, keys[kId], v)
 
-
-'''
-setup(5)
-
-for i in range(1):
-    print(datetime.datetime.now())
-    for j in range(40):
-        put(c[i*40+j], key[i*40+j], value[i*40+j])
+            get(j+5, keys[kId])
     stabilize()
+<<<<<<< HEAD
     print("finish ", i)
 '''
 testCase = 101000
+=======
+    # after stabilize, for each key, check if the values getting from all clients are the same
+    for i in range(len(keys)):
+        values = ['None'] * numClient
+        for j in range(numClient):
+            values[j] = get(j+5, keys[i])
+        for k in range(numClient):
+            if values[k] != values[(k + 1) % numClient]:
+                err += 1
+            print('get: ', values[k], ', ground truth is: ', values[(k + 1) % numClient])
+>>>>>>> origin/master
 
-if testCase == 0: # test Total order. Read-after-write
-    print ('This case involves 1 clients with 2 servers. c0 put a k-v0 in s0 then switch to s1 and put k-v1. Then, we performs get during c0 connecting to s1 and get ERR_DEP')
+    print ('Get ', err, ' mismatches. 0 err means achieve eventually consistency')
+    os._exit(1)
+
+elif testCase == 'read-your-write':
+    print ('test [read-your-write] property ')
     setup(3)
-    put(0, 'x', 0)
-    breakConnection(0, 0)
-    createConnection(0, 1)
-    time.sleep(0.05)
-    put(0, 'x', 1)
-    print (get(0, 'x'))
-    breakConnection(0, 1)
-    createConnection(0, 0)
-    time.sleep(0.05)
-    print (get(0, 'x'), '  -- Here we should get DEP_ERR due to Read-after-write')
-    print("finished")
-    os._exit(1)
-#################################################
-elif testCase == 1:
-    print ("---[TEST 1] should output 0 1 1 1 4 ERR_DEP---")
-    setup(2)
-    put(0, "x", 0)
-    put(1, "x", 1)
-    put(0, "y", 2)
-    time.sleep(0.05)
-    put(1, "y", 3)
-    get(0, "x")  # 0
-    get(1, "x")  # 1
-    printStore(0)
+    for i in range(100):
+        put(5, 'x', i)
+
+    for i in range(10):
+        put(6, 'x', 100 + i)
+
+    breakConnection(6, 1)
+    createConnection(6, 0)
+    print(get(6, 'x'))  # 99
+
+    breakConnection(5, 0)
+    createConnection(5, 1)
+    print(get(5, 'x'))  # ERR_DEP
     stabilize()
-    time.sleep(0.1)
-    printStore(0)
-    printStore(1)
-    get(0, "x")  # 1
-    get(1, "x")  # 1
-    ## critical
-    put(0, "x", 4)
-    time.sleep(0.05)
-    get(0, "x")  # 4
-    time.sleep(0.05)
-    get(0, "x")
-    printStore(1)
-    print("finished")
+    print(get(6, 'x'))  # 99
+    print(get(5, 'x'))  # 99
+    print ('we have c0 conntects to s0 and c1 connects to s1 intially and put some values to key x. Then, we switch connection and check if client could get latest write(or output ERR_DEP')
     os._exit(1)
-##################################################
-elif testCase == 2:  # simple cases
-    # 1 s, 2 c
-    print ("---[TEST 2] should output 0 1 3 4---")
+
+elif testCase == 'monotonicReads':  # Test Monotonic Reads.
+    print ('test [Monotonic Reads] property ')
+    joinServer(4)
+    joinServer(3)
+    joinClient(5, 3)
+    joinClient(7, 4)
+    put(5, 'x', 0)
+    put(7, 'x', 1)
+    joinClient(8, 3)
+    print (get(8, 'x'))
+    breakConnection(8, 3)
+    createConnection(8, 4)
+    print (get(8, 'x'))
+    # time.sleep(0.5)
+    breakConnection(8, 4)
+    createConnection(8, 3)
+    print (get(8, 'x'), ' this value should be ERR_DEP because it switch to previous server')  # get ERR_DEP
+    print 'done Monotonic Reads check'
+    os._exit(1)
+
+elif testCase == 'joinServer': # joinServer
+    print (' test joinServer. perform basic commands combining with stabilize and printStore to see if we join server correctly')
+    # breakservers
+    joinServer(0)
+    joinServer(1)
+    joinServer(2)
+    joinServer(3)
+    joinServer(4)
+    joinClient(5, 0)
+    put(5, "x", 0)
+    createConnection(0, 1)
+    createConnection(5, 1)  # c0 with s1
+
+    put(5, "x", 2)  # put x:2 in server 1
+    createConnection(5, 0)
+
+    print (get(5, "x"))  # ERR_DEP
+    # breakServers(0, 1)
+    stabilize()  # do nothing
+    print (get(5, "x"))  # 2
+    createConnection(0, 1)
+    stabilize()
+    print (get(5, "x"))  # 2
+    print ('finish testing')
+    for i in range(5):
+        printStore(i)
+    os._exit(1)
+elif testCase == 'killServer':
+    setup(3)
+    put(5, 0, 0)
+    killServer(0)
+    print(get(5, 0))
+    createConnection(5, 0)
+    print(get(5, 0))
+    print ('Finish test killServer. client 5 only connect to server0. Once server 0 got killed, we cant get any data from client 5')
+    os._exit(1)
+
+elif testCase == 'printStore':  # printStore
+    print ('perform basic prinStore operation')
+    setup(5)
+    for j in range(5):
+        for i in range(10):
+            put(j+5, j * 10 + i, j * 10 + i)
+        printStore(j)
+    os._exit(1)
+elif testCase == 'joinClient':
+
+    print ("test [joinClient] API. ")
     joinServer(0)
     joinServer(1)
     time.sleep(0.05)
@@ -119,211 +176,80 @@ elif testCase == 2:  # simple cases
     put(0, "x", 4)
     print(get(0, "x"))  # 4
     print("finished")
-###################################################
-elif testCase == 3:
-    print ("---[TEST 3] should output ERR_DEP ERR_DEP 2---")
-    # breakservers
-    joinServer(0)
-    time.sleep(0.05)
-    joinServer(1)
-    time.sleep(0.05)
-    joinServer(2)
-    time.sleep(0.05)
-    joinServer(3)
-    time.sleep(0.05)
-    joinServer(4)
-    time.sleep(0.05)
-    joinClient(0, 0)
-    time.sleep(0.05)
-    put(0, "x", 0)
-    # connectServers(0, 1)
-    createConnection(0, 1)  # c0 with s1
-    time.sleep(0.05)
-    put(0, "x", 2)  # put x:2 in server 1
-    createConnection(0, 0)
-    time.sleep(0.05)
-    get(0, "x")  # ERR_DEP
-    # breakServers(0, 1)
-    stabilize()  # do nothing
-    get(0, "x")  # ERR_DEP
-    connectServers(0, 1)
-    stabilize()
-    get(0, "x")  # 2
-
-elif testCase == 31:  # killserver
-    setup(3)
-    put(0, 0, 0)
-    killServer(0)
-    print(get(0, 0))
-    createConnection(0, 0)
-    print(get(0, 0))
-
-elif testCase == 41:  # printStore
-    setup(5)
-    for j in range(5):
-        for i in range(10):
-            put(j, j * 10 + i, j * 10 + i)
-        printStore(j)
-
-elif testCase == 51:  # Read your write  1
-    setup(3)
-    put(0, 'x', 0)
-    breakConnection(0, 0)
-    createConnection(0, 1)
-    time.sleep(0.05)
-    put(0, 'x', 1)
-    print(get(0, 'x'))
-    breakConnection(0, 1)
-    createConnection(0, 0)
-    time.sleep(0.05)
-    print(get(0, 'x'))
     os._exit(1)
 
-
-elif testCase == 52:  # Read your write 2, change
-    print ('should output ERR_DEP ERR_DEP')
-    setup(3)
-    put(0, 'x', 0)
-    put(1, 'x', 1)
-    breakConnection(0, 0)
-    createConnection(0, 1)
-    breakConnection(1, 1)
-    createConnection(1, 0)
-
-    print(get(0, 'x'))
-    print(get(1, 'x'))
-    os._exit(1)
-
-elif testCase == 53:  # READ your write 3
-    setup(3)
-    for i in range(100):
-        put(0, 'x', i)
-    time.sleep(0.05)
-    for i in range(10):
-        put(1, 'x', 100 + i)
-
-    breakConnection(1, 1)
-    createConnection(1, 0)
-    print(get(1, 'x'))  # 99
-
-    breakConnection(0, 0)
-    createConnection(0, 1)
-    print(get(0, 'x'))  # ERR_DEP
-    stabilize()
-    print(get(1, 'x'))  # 99
-    print(get(0, 'x'))  # 99
-    os._exit(1)
-
-elif testCase == 61:  # test partition # break. if we only has 2 server, if we break s1 and s2. then when we do stablize, it doesn't do anything
+elif testCase == 'breackConnection':  # test breackConnection/Connection between servers
+    print ('test [breackConnection] API. ')
     numSer = 2
     setup(numSer)
     for j in range(numSer):
         for i in range(10):
-            put(j, 'x', j * 10 + i)
-    breakServers(0, 1)  # ****
+            put(j+5, 'x', j * 10 + i)
+    breakConnection(0, 1)  #
     stabilize()
-    time.sleep(2)
+
+    print ('We break the connection between s0 and s1. since server 0 and 1 do not connect. After stabilizing they do not have consistent view')
+    for i in range(numSer):
+        printStore(i)
+
+    createConnection(0, 1)
+    stabilize()
+    print ('We re-create connection between server 0 and 1. After stabilizing they now have consistent view')
     for i in range(numSer):
         printStore(i)
     os._exit(1)
 
-elif testCase == 62:  # test partition # break. if we only has 5 server, if we break s1 and s2. then XXXXXXXXX
+elif testCase == 'createConnection':  # 1 server, 2 client
+    print ('test [createConnection] API. ')
+    numSer = 3
+    setup(numSer)
+    for j in range(numSer):
+        for i in range(10):
+            put(j+5, 'y', j * 10 + i)
+    breakConnection(0, 1)  #
+    stabilize()
+
+    print ('since server 0 and 1 do not connect. After stabilizing they do not have consistent view')
+    for i in range(numSer):
+        printStore(i)
+
+    createConnection(0, 1)
+    stabilize()
+    print ('We re-create connection between server 0 and 1. After stabilizing they now have consistent view')
+    for i in range(numSer):
+        printStore(i)
+    os._exit(1)
+elif testCase == 'stabilize':
+
     numSer = 5
     setup(numSer)
     for j in range(numSer):
         for i in range(10):
-            put(j, 'x', j * 10 + i)
-    breakServers(0, 1)  # ****
+            put(j+5, 'x', j * 10 + i)
+    print ('Before stabilize, each server has different view')
+    for i in range(numSer):
+        printStore(i)
+
     stabilize()
-    time.sleep(2)
+
+    print ('After stabilize, each server has same view')
     for i in range(numSer):
         printStore(i)
         # print get(i, 'x')
     os._exit(1)
 
-elif testCase == 63:  # test breackConnection/Connection between servers
-    numSer = 2
-    setup(numSer)
-    for j in range(numSer):
-        for i in range(10):
-            put(j, 'x', j * 10 + i)
-    breakServers(0, 1)  #
-    stabilize()
-    time.sleep(2)
-    print ('since server 0 and 1 do not connect. After stabilizing they do not have consistent view')
-    for i in range(numSer):
-        printStore(i)
-    connectServers(0, 1)
-    stabilize()
-    time.sleep(2)
-    print ('We re-create connection between server 0 and 1. After stabilizing they do not have consistent view')
-    for i in range(numSer):
-        printStore(i)
-    os._exit(1)
-
-elif testCase == 7:  # 1 server, 2 client
-    setup(3)
-    breakConnection(1, 1)
-    createConnection(1, 0)
-    put(1, 'x', 1)
-    put(0, 'x', 2)
-    put(0, 'x', 3)
-    print(get(0, 'x'))  # 3
-    print(get(1, 'x'))  # 3
-    stabilize()
-    print(get(1, 'x'))  # 3
-
-elif testCase == 81:  # Test Monotonic Reads
-    print ('test Monotonic Reads. The ')
-    setup(5)
-    readDicts = []
-    keys = list(string.ascii_lowercase)
-    # initial read dict as -1 for all values of key
-    for k in range(5):
-        readDicts.append(dict())
-        for j in range(len(keys)):
-            readDicts[k][keys[j]] = -1
-    gt = [['ERR_KEY'] * len(keys) for i in range(5)]  # ground truth
-    for i in xrange(100):
-        for j in range(len(keys)):
-            for k in range(5):
-                # put value
-                put(k, keys[j], i)
-                # get value maintain .
-                v = get(k, keys[j])
-                if v < readDicts[k][keys[j]]:
-                    print('[ERROR!] Not satisfy for Monotonic Reads')
-                readDicts[k][keys[j]] = v
-    print('done Monotonic Reads check')
-    os._exit(1)
-
-elif testCase == 82: # Test Monotonic Reads.
-
-    joinServer(4)
-    joinServer(3)
-    joinClient(5, 3)
-    joinClient(7, 4)
+elif testCase == 'put':
+    print ('test [put] API')
+    setup(2)
     put(5, 'x', 0)
-    put(7, 'x', 1)
-    joinClient(8, 3)
-    print (get(8,'x'))
-    breakConnection(8, 3)
-    createConnection(8, 4)
-    print (get(8, 'x'))
-    #time.sleep(0.5)
-    breakConnection(8, 4)
-    createConnection(8, 3)
-    print (get(8, 'x'), ' this value should be ERR_DEP because it switch to previous server') # get ERR_DEP
-    print('done Monotonic Reads check')
+    printStore(0)
     os._exit(1)
 
-elif testCase == 83: # Test Monotonic Reads.
-
-    joinServer(4)
-    joinServer(3)
-    joinClient(5, 3)
-    joinClient(7, 4)
+elif testCase == 'get':
+    print ('test normal [get] API')
+    setup(2)
     put(5, 'x', 0)
+<<<<<<< HEAD
     put(7, 'x', 1)
     joinClient(8, 4)
     print (get(8,'x'))
@@ -534,3 +460,7 @@ else:
 
 
 
+=======
+    print (get(5,'x'))
+    os._exit(1)
+>>>>>>> origin/master

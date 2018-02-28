@@ -55,6 +55,8 @@ def killServer (sid):
     for i in connectedSids[sid]:
         connectedSids[i].remove(sid)
     connectedSids[sid].clear()
+    servers[sid].exit()
+    servers[sid] = -1
     for i in range(5):
         if clientConnected[i] == sid:
             clientConnected[i] = -1
@@ -180,11 +182,14 @@ def process(line):
     elif API == 'stabilize\n':
         stabilize()
     elif API == 'printStore':
-        printStore(int(command[1]))
+        print printStore(int(command[1]))
+        #kv = printStore(int(command[1]))
+        #for k, v in kv:
+        #    print (k, ':', v)
     elif API == 'put':
         put(int(command[1]), command[2], command[3])
     elif API == 'get':
-        get(int(command[1]), command[2])
+        print (command[2], ': ', get(int(command[1]), command[2]))
     else:
         print('Invalid command:', line)
 
