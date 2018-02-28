@@ -58,7 +58,7 @@ if testCase =='eventualConsistency':
         for k in range(numClient):
             if values[k] != values[(k + 1) % numClient]:
                 err += 1
-            print('get: ', values[k], ', ground truth is: ', values[(k + 1) % numClient])
+            print 'get: ', values[k], ', ground truth is: ', values[(k + 1) % numClient]
 
 
     print ('Get ', err, ' mismatches. 0 err means achieve eventually consistency')

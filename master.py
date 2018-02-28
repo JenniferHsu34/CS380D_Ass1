@@ -182,14 +182,14 @@ def process(line):
     elif API == 'stabilize':
         stabilize()
     elif API == 'printStore':
-        print printStore(int(command[1]))
+        printStore(int(command[1]))
         #kv = printStore(int(command[1]))
         #for k, v in kv:
         #    print (k, ':', v)
     elif API == 'put':
         put(int(command[1]), command[2], command[3])
     elif API == 'get':
-        print (command[2], ': ', get(int(command[1]), command[2]))
+        print command[2], ': ', get(int(command[1]), command[2])
     else:
         print('Invalid command:', line)
 
@@ -203,5 +203,4 @@ if __name__ == "__main__":
             line = line.strip()
             if not line: break
             process(line)
-    print(time.time()-start)
     os._exit(1)
