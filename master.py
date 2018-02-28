@@ -54,7 +54,7 @@ def killServer (sid):
         return 0
 
     servers[sid].exit()
-    sendToServer(sid,"exit")
+    sendToServer(sid, "exit")
     while servers[sid].is_alive():
         continue
 
@@ -63,7 +63,7 @@ def killServer (sid):
         connectedSids[i].remove(sid)
     connectedSids[sid] = []
 
-    for i in range(5):
+    for i in range(10):
         if clientConnected[i] == sid:
             clientConnected[i] = -1
 
@@ -78,11 +78,17 @@ def printStore(sid):
     servers[sid].printStore()
 
 def put(cid, key, value):
+    if clientConnected[cid] == -1:
+        print("error connection")
+
     clients[cid].run("put", key, value)
     if clients[cid].is_alive():
         clients[cid].join()
 
 def get(cid, key):
+    if clientConnected[cid] == -1:
+        return "error connection"
+
     clients[cid].run("get", key)
     if clients[cid].is_alive():
         clients[cid].join()
@@ -197,7 +203,7 @@ def process(line):
     elif API == 'get':
         print command[2], ': ', get(int(command[1]), command[2])
     else:
-        print('Invalid command:', line)
+        print 'Invalid command:', line
 
 if __name__ == "__main__":
 
