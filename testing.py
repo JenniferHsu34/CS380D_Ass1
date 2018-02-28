@@ -29,9 +29,6 @@ def setup(numServers):
         joinClient(i+5, i)
 
 
-c = [randint(0, 4) for i in range(400)]
-key = [randint(0, 2000) for i in range(400)]
-value = [randint(0, 100) for i in range(400)]
 testCase = 'eventualConsistency'
 # here you can put: eventualConsistency read-your-write monotonicReads
 # joinServer killServer printStore joinClient breakConnection createConnection stabilize put get
