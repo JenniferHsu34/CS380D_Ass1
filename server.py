@@ -21,7 +21,6 @@ def recvAll(socket, length):
 receivePorts = [randint(2602,29999),randint(2602,29999),randint(2602,29999),randint(2602,29999),randint(2602,29999)]
 sendFromPorts  = [randint(2602,29999),randint(2602,29999),randint(2602,29999),randint(2602,29999),randint(2602,29999)]
 
-
 debugV = 0
 def debug(s):
     global  debugV
