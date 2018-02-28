@@ -50,13 +50,19 @@ def joinServer (sid):
 
 
 def killServer (sid):
+    if servers[sid] == -1:
+        return 0
+
     servers[sid].exit()
+    sendToServer(sid,"exit")
+    while servers[sid].is_alive():
+        continue
+
     servers[sid] = -1
     for i in connectedSids[sid]:
         connectedSids[i].remove(sid)
-    connectedSids[sid].clear()
-    servers[sid].exit()
-    servers[sid] = -1
+    connectedSids[sid] = []
+
     for i in range(5):
         if clientConnected[i] == sid:
             clientConnected[i] = -1
@@ -182,7 +188,7 @@ def process(line):
     elif API == 'stabilize\n':
         stabilize()
     elif API == 'printStore':
-        print printStore(int(command[1]))
+        printStore(int(command[1]))
         #kv = printStore(int(command[1]))
         #for k, v in kv:
         #    print (k, ':', v)

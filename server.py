@@ -76,9 +76,9 @@ class server(threading.Thread):
         self.s.listen(5)  # Now wait for client connection.
         threading.Thread(target=self.receiveWriteLog, args=()).start()
         while True:
+            clientM, addr = self.s.accept()  # Establish connection with client.
             if self.exitFlag:
                 break
-            clientM, addr = self.s.accept()  # Establish connection with client.
             threading.Thread(target=self.on_new_client, args=(clientM, addr)).start()
         self.s.close()
         print("exit!!!!")
@@ -220,10 +220,11 @@ class server(threading.Thread):
         s.bind((self.host,receivePorts[self.sid]))
         s.listen(3)
         while True:
+            msg, addr = s.accept()
             if self.exitFlag:
                 break
-            msg, addr = s.accept()
             threading.Thread(target=self.on_otherWriteLog, args=(msg,) ).start()
+        print("exitReceive")
 
 
 
@@ -262,3 +263,9 @@ class server(threading.Thread):
 
     def exit(self):
         self.exitFlag = True
+        toAddr = (self.host,receivePorts[self.sid])
+        s = socket.socket()
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        s.bind((self.host, sendFromPorts[self.sid]))
+        s.connect(toAddr)
+        s.send(pickle.dumps("exitReceive"))
