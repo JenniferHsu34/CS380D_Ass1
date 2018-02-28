@@ -162,7 +162,7 @@ def dfs(node,vis,tempComponent):
 
 
 def process(line):
-    print (line)
+
     command = line.split(' ')
     API = command[0]
     if API ==  'joinServer':
@@ -170,7 +170,6 @@ def process(line):
     elif API == 'killServer':
         killServer(int(command[1]))
     elif API == 'joinClient':
-        print (int(command[1]), ' ',  int(command[2]))
         joinClient(int(command[1]), int(command[2]))
     elif API == 'breakConnection':
         breakconnection(int(command[1]), int(command[2]))
@@ -179,11 +178,14 @@ def process(line):
     elif API == 'stabilize':
         stabilize()
     elif API == 'printStore':
-        printStore(int(command[1]))
+        print printStore(int(command[1]))
+        #kv = printStore(int(command[1]))
+        #for k, v in kv:
+        #    print (k, ':', v)
     elif API == 'put':
         put(int(command[1]), command[2], command[3])
     elif API == 'get':
-        get(int(command[1]), command[2])
+        print (command[2], ': ', get(int(command[1]), command[2]))
     else:
         print('Invalid command')
 
@@ -192,6 +194,7 @@ if __name__ == "__main__":
     with open(filename, 'rb') as f:
         while True:
             line = f.readline()
+            line = line.strip()
             if not line: break
             process(line)
     os._exit(1)
