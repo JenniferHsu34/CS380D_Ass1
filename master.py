@@ -185,7 +185,7 @@ def process(line):
         breakconnection(int(command[1]), int(command[2]))
     elif API == 'createConnection':
         breakconnection(int(command[1]), int(command[2]))
-    elif API == 'stabilize\n':
+    elif API == 'stabilize':
         stabilize()
     elif API == 'printStore':
         printStore(int(command[1]))
@@ -195,7 +195,7 @@ def process(line):
     elif API == 'put':
         put(int(command[1]), command[2], command[3])
     elif API == 'get':
-        print (command[2], ': ', get(int(command[1]), command[2]))
+        print command[2], ': ', get(int(command[1]), command[2])
     else:
         print('Invalid command:', line)
 
@@ -206,7 +206,7 @@ if __name__ == "__main__":
     with open(filename, 'rb') as f:
         while True:
             line = f.readline()
+            line = line.strip()
             if not line: break
             process(line)
-    print(time.time()-start)
     os._exit(1)
