@@ -79,8 +79,8 @@ class server(threading.Thread):
             if self.exitFlag:
                 break
             threading.Thread(target=self.on_new_client, args=(clientM, addr)).start()
-        self.s.close()
-        print("exit!!!!")
+        self.s.shutdown(1)
+        # print("exit!!!!")
 
 
 
@@ -223,7 +223,8 @@ class server(threading.Thread):
             if self.exitFlag:
                 break
             threading.Thread(target=self.on_otherWriteLog, args=(msg,) ).start()
-        print("exitReceive")
+        s.close()
+        # print("exitReceive")
 
 
 
@@ -268,3 +269,4 @@ class server(threading.Thread):
         s.bind((self.host, sendFromPorts[self.sid]))
         s.connect(toAddr)
         s.send(pickle.dumps("exitReceive"))
+        s.close()
