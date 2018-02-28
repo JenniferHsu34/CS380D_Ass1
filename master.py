@@ -179,7 +179,7 @@ def process(line):
         breakconnection(int(command[1]), int(command[2]))
     elif API == 'createConnection':
         breakconnection(int(command[1]), int(command[2]))
-    elif API == 'stabilize\n':
+    elif API == 'stabilize':
         stabilize()
     elif API == 'printStore':
         print printStore(int(command[1]))
@@ -200,6 +200,7 @@ if __name__ == "__main__":
     with open(filename, 'rb') as f:
         while True:
             line = f.readline()
+            line = line.strip()
             if not line: break
             process(line)
     print(time.time()-start)

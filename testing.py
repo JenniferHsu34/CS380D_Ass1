@@ -29,8 +29,8 @@ def setup(numServers):
         joinClient(i+5, i)
 
 
-testCase = 'performance'
-# here you can put: eventualConsistency read-your-write monotonicReads
+testCase = 'createConnection'
+# here you can put: eventualConsistency read-your-write monotonicReads performance
 # joinServer killServer printStore joinClient breakConnection createConnection stabilize put get
 if testCase =='eventualConsistency':
     print ('test [eventual Consistency] property ')
@@ -220,8 +220,8 @@ elif testCase == 'joinClient':
     print("finished")
     os._exit(1)
 
-elif testCase == 'breackConnection':  # test breackConnection/Connection between servers
-    print ('test [breackConnection] API. ')
+elif testCase == 'breakConnection':  # test breackConnection/Connection between servers
+    print ('test [breakConnection] API. ')
     numSer = 2
     setup(numSer)
     for j in range(numSer):
