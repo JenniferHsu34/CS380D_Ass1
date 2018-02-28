@@ -29,10 +29,10 @@ def setup(numServers):
         joinClient(i+5, i)
 
 
-testCase = 'createConnection'
-# here you can put: eventualConsistency read-your-write monotonicReads performance
-# joinServer killServer printStore joinClient breakConnection createConnection stabilize put get
-if testCase =='eventualConsistency':
+testCase = 'performance'
+# here you can put: 'eventualConsistency'  'read-your-write'  'monotonicReads' 'performance'
+# 'joinServer' 'killServer' 'printStore' 'joinClient' 'breakConnection' 'createConnection' 'stabilize' 'put' 'get'
+if testCase == 'eventualConsistency':
     print ('test [eventual Consistency] property ')
     numServer = 5
     numClient = 5
@@ -106,7 +106,7 @@ elif testCase == 'monotonicReads':  # Test Monotonic Reads.
     print 'done Monotonic Reads check'
     os._exit(1)
 
-elif testCase == 'performance':  # test performance ----
+elif testCase == 'performance':  # test performance
     setup(5)
     start = time.time()
     for j in range(5):
@@ -125,7 +125,7 @@ elif testCase == 'performance':  # test performance ----
             get(j+5, 'x')
     end = time.time()
     getTime = (end - start)
-    print('[only 1 key] put: ', putTime / 500.0, ', get: ', getTime / 500.0, ', stable: ', stableTime)
+    print '[only 1 key] put: ', putTime / 500.0, ', get: ', getTime / 500.0, ', stable: ', stableTime
     totalTemp = putTime+getTime
     start = time.time()
     for j in range(5):
@@ -149,8 +149,8 @@ elif testCase == 'performance':  # test performance ----
     end = time.time()
     getTime = (end - start)
     totalTemp += putTime + getTime
-    print('[many keys] put: ', putTime / 500.0, ', get: ', getTime / 500.0, ', stable: ', stableTime)
-    print ('Per second perform', 2000/totalTemp/1.0, 'instructions')
+    print'[many keys] put: ', putTime / 500.0, ', get: ', getTime / 500.0, ', stable: ', stableTime
+    print 'Per second perform', 2000/totalTemp/1.0, 'instructions'
     os._exit(1)
 
 elif testCase == 'joinServer': # joinServer
@@ -169,14 +169,14 @@ elif testCase == 'joinServer': # joinServer
     put(5, "x", 2)  # put x:2 in server 1
     createConnection(5, 0)
 
-    print (get(5, "x"))  # ERR_DEP
+    print get(5, "x") # ERR_DEP
     # breakServers(0, 1)
     stabilize()  # do nothing
-    print (get(5, "x"))  # 2
+    print get(5, "x")  # 2
     createConnection(0, 1)
     stabilize()
-    print (get(5, "x"))  # 2
-    print ('finish testing')
+    print get(5, "x") # 2
+    print 'finish testing'
     for i in range(5):
         printStore(i)
     os._exit(1)
@@ -184,10 +184,10 @@ elif testCase == 'killServer':
     setup(3)
     put(5, 0, 0)
     killServer(0)
-    print(get(5, 0))
+    print get(5, 0)
     createConnection(5, 0)
-    print(get(5, 0))
-    print ('Finish test killServer. client 5 only connect to server0. Once server 0 got killed, we cant get any data from client 5')
+    print get(5, 0)
+    print 'Finish test killServer. client 5 only connect to server0. Once server 0 got killed, we cant get any data from client 5'
     os._exit(1)
 
 elif testCase == 'printStore':  # printStore
@@ -200,7 +200,7 @@ elif testCase == 'printStore':  # printStore
     os._exit(1)
 elif testCase == 'joinClient':
 
-    print ("test [joinClient] API. ")
+    print "test [joinClient] API. "
     joinServer(0)
     joinServer(1)
     time.sleep(0.05)
@@ -208,16 +208,16 @@ elif testCase == 'joinClient':
     joinClient(1, 0)
     time.sleep(0.05)
     put(0, "x", 0)
-    print(get(1, "x"))  # 0
+    print get(1, "x")  # 0
     put(1, "x", 1)
     put(0, "x", 2)
     put(0, "x", 3)
-    print(get(1, "x"))  # 3
+    print get(1, "x")  # 3
     stabilize()
-    print(get(1, "x"))  # 3
+    print get(1, "x")  # 3
     put(0, "x", 4)
-    print(get(0, "x"))  # 4
-    print("finished")
+    print get(0, "x")  # 4
+    print "finished"
     os._exit(1)
 
 elif testCase == 'breakConnection':  # test breackConnection/Connection between servers
@@ -230,13 +230,13 @@ elif testCase == 'breakConnection':  # test breackConnection/Connection between 
     breakConnection(0, 1)  #
     stabilize()
 
-    print ('We break the connection between s0 and s1. since server 0 and 1 do not connect. After stabilizing they do not have consistent view')
+    print 'We break the connection between s0 and s1. since server 0 and 1 do not connect. After stabilizing they do not have consistent view'
     for i in range(numSer):
         printStore(i)
 
     createConnection(0, 1)
     stabilize()
-    print ('We re-create connection between server 0 and 1. After stabilizing they now have consistent view')
+    print 'We re-create connection between server 0 and 1. After stabilizing they now have consistent view'
     for i in range(numSer):
         printStore(i)
     os._exit(1)
@@ -251,13 +251,13 @@ elif testCase == 'createConnection':  # 1 server, 2 client
     breakConnection(0, 1)  #
     stabilize()
 
-    print ('since server 0 and 1 do not connect. After stabilizing they do not have consistent view')
+    print 'since server 0 and 1 do not connect. After stabilizing they do not have consistent view'
     for i in range(numSer):
         printStore(i)
 
     createConnection(0, 1)
     stabilize()
-    print ('We re-create connection between server 0 and 1. After stabilizing they now have consistent view')
+    print 'We re-create connection between server 0 and 1. After stabilizing they now have consistent view'
     for i in range(numSer):
         printStore(i)
     os._exit(1)
@@ -268,27 +268,27 @@ elif testCase == 'stabilize':
     for j in range(numSer):
         for i in range(10):
             put(j+5, 'x', j * 10 + i)
-    print ('Before stabilize, each server has different view')
+    print 'Before stabilize, each server has different view'
     for i in range(numSer):
         printStore(i)
 
     stabilize()
 
-    print ('After stabilize, each server has same view')
+    print 'After stabilize, each server has same view'
     for i in range(numSer):
         printStore(i)
         # print get(i, 'x')
     os._exit(1)
 
 elif testCase == 'put':
-    print ('test [put] API')
+    print 'test [put] API'
     setup(2)
     put(5, 'x', 0)
     printStore(0)
     os._exit(1)
 
 elif testCase == 'get':
-    print ('test normal [get] API')
+    print 'test normal [get] API'
     setup(2)
     put(5, 'x', 0)
 
