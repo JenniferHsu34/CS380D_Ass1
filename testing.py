@@ -54,7 +54,7 @@ for i in range(1):
     stabilize()
     print("finish ", i)
 '''
-testCase = 92
+testCase = 101000
 
 if testCase == 0: # test Total order. Read-after-write
     print ('This case involves 1 clients with 2 servers. c0 put a k-v0 in s0 then switch to s1 and put k-v1. Then, we performs get during c0 connecting to s1 and get ERR_DEP')
@@ -488,6 +488,8 @@ elif testCase == 92:
     c = [randint(5, 9) for i in range(40)]
     key = [randint(0, 40) for i in range(40)]
     value = [randint(0, 100) for i in range(40)]
+    for i in range(40):
+        #print('put', c[i], key[i], value[i])
     start = time.time()
     joinServer(4)
     joinServer(2)
@@ -504,5 +506,31 @@ elif testCase == 92:
     stabilize()
     put(5, 0, 0)
     print(time.time()-start)
+else:
+    joinServer(0)
+    joinServer(1)
+    joinServer(2)
+    joinServer(3)
+    breakConnection(0, 1)
+    breakConnection(0, 2)
+    breakConnection(0, 3)
+    joinClient(5, 0)
+    joinClient(6, 0)
+    put(5, "x", 1)
+    get(6, "x")
+    breakConnection(6, 0)
+    createConnection(6, 1)
+    get(6, "x")
+    createConnection(0, 2)
+    stabilize()
+    print(get(6, "x"))
+    put(6, "x", 2)
+    killServer(2)
+    stabilize()
+    print(get(5, "x"))
+    createConnection(0, 1)
+    stabilize()
+    print(get(5, "x"))
+
 
 
