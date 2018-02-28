@@ -43,6 +43,7 @@ class server(threading.Thread):
         self.receiveLock = threading.Lock()
         self.received = 0
         self.exitFlag = False
+        self.event = threading.Event()
 
         threading.Thread.__init__(self)
 
@@ -99,9 +100,11 @@ class server(threading.Thread):
                         debug(entry)
                         if entry[0] == "stabilizeCenter":
                             self.stabilizeCenter(entry[1])
+                            self.event.set()
 
                         elif entry[0] == "stabilizeSender":
                             self.stabilizeSender(entry[1])
+                            self.event.set()
 
                         elif entry[0] == 'put':
                             self.update(entry[1:])

@@ -50,7 +50,8 @@ def joinServer (sid):
 
 
 def killServer (sid):
-
+    servers[sid].exit()
+    servers[sid] = -1
     for i in connectedSids[sid]:
         connectedSids[i].remove(sid)
     connectedSids[sid].clear()
@@ -129,13 +130,14 @@ def connectServers (id1,id2):
 
 def stabilize():
     nodes = []
-    vis = {} # visited_list
-    connectedComponents = [] #
+    vis = {}
+    connectedComponents = []
     for server in servers:
         if server != -1:
             node = server.sid
             nodes.append(node)
             vis[node] = False
+            server.event.clear()
     for a in nodes:
         tempComponent = []
         if vis[a] == False:
@@ -149,7 +151,9 @@ def stabilize():
         sendToServer(centerId, ("stabilizeCenter", component))
         for sendId in component:
             sendToServer(sendId, ("stabilizeSender", centerId))
-
+    for server in servers:
+        if server != -1:
+            server.event.wait()
 
 # basic depth first search
 def dfs(node,vis,tempComponent):
@@ -161,7 +165,7 @@ def dfs(node,vis,tempComponent):
 
 
 def process(line):
-
+    #print (line)
     command = line.split(' ')
     API = command[0]
     if API ==  'joinServer':
@@ -169,12 +173,13 @@ def process(line):
     elif API == 'killServer':
         killServer(int(command[1]))
     elif API == 'joinClient':
+        #print (int(command[1]), ' ',  int(command[2]))
         joinClient(int(command[1]), int(command[2]))
     elif API == 'breakConnection':
         breakconnection(int(command[1]), int(command[2]))
     elif API == 'createConnection':
         breakconnection(int(command[1]), int(command[2]))
-    elif API == 'stabilize':
+    elif API == 'stabilize\n':
         stabilize()
     elif API == 'printStore':
         print printStore(int(command[1]))
@@ -186,14 +191,16 @@ def process(line):
     elif API == 'get':
         print (command[2], ': ', get(int(command[1]), command[2]))
     else:
-        print('Invalid command')
+        print('Invalid command:', line)
 
 if __name__ == "__main__":
+
     filename = sys.argv[1] #'command.txt'
+    start = time.time()
     with open(filename, 'rb') as f:
         while True:
             line = f.readline()
-            line = line.strip()
             if not line: break
             process(line)
+    print(time.time()-start)
     os._exit(1)
