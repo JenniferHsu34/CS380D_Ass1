@@ -29,7 +29,7 @@ def setup(numServers):
         joinClient(i+5, i)
 
 
-testCase = 'eventualConsistency'
+testCase = 'performance'
 # here you can put: eventualConsistency read-your-write monotonicReads
 # joinServer killServer printStore joinClient breakConnection createConnection stabilize put get
 if testCase =='eventualConsistency':
@@ -103,6 +103,53 @@ elif testCase == 'monotonicReads':  # Test Monotonic Reads.
     createConnection(8, 3)
     print (get(8, 'x'), ' this value should be ERR_DEP because it switch to previous server')  # get ERR_DEP
     print 'done Monotonic Reads check'
+    os._exit(1)
+
+elif testCase == 'performance':  # test performance ----
+    setup(5)
+    start = time.time()
+    for j in range(5):
+        for i in range(100):
+            put(j+5, 'x', j * 100 + i)
+    end = time.time()
+    putTime = (end - start)
+    start = time.time()
+    stabilize()
+
+    end = time.time()
+    stableTime = (end - start)
+    start = time.time()
+    for j in range(5):
+        for i in range(100):
+            get(j+5, 'x')
+    end = time.time()
+    getTime = (end - start)
+    print('[only 1 key] put: ', putTime / 500.0, ', get: ', getTime / 500.0, ', stable: ', stableTime)
+    totalTemp = putTime+getTime
+    start = time.time()
+    for j in range(5):
+        for i in range(100):
+            put(j+5, j * 100 + i, j * 100 + i)
+    end = time.time()
+
+    putTime = (end - start)
+    start = time.time()
+
+    stabilize()
+
+    end = time.time()
+
+
+    stableTime = (end - start)
+    start = time.time()
+    for j in range(5):
+        for i in range(100):
+            get(j+5, str(j * 100 + i))
+    end = time.time()
+    getTime = (end - start)
+    totalTemp += putTime + getTime
+    print('[many keys] put: ', putTime / 500.0, ', get: ', getTime / 500.0, ', stable: ', stableTime)
+    print ('Per second perform', 2000/totalTemp/1.0, 'instructions')
     os._exit(1)
 
 elif testCase == 'joinServer': # joinServer
