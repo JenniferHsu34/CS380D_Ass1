@@ -8,6 +8,8 @@ from random import randint
 import time
 import datetime
 
+msgLength = 1024
+
 def recvAll(socket, length):
     data = b''
     while True:
@@ -16,6 +18,13 @@ def recvAll(socket, length):
         if len(packet) < length:
             return data
 
+def sendAll(socket, data, length):
+    cnt = length
+    while cnt < len(data):
+        # print(data[(cnt - length): cnt])
+        socket.sendall(data[(cnt - length): cnt])
+        cnt += length
+    socket.sendall(data[(cnt - length): cnt])
 
 #ports for communication between servers
 receivePorts = [randint(2602,29999),randint(2602,29999),randint(2602,29999),randint(2602,29999),randint(2602,29999)]
@@ -86,11 +95,11 @@ class server(threading.Thread):
 
     def on_new_client(self, clientM, addr):
         while True:
-            msg = recvAll(clientM, 4096)
+            msg = recvAll(clientM, msgLength)
             if (msg != b''):
                 self.lock.acquire()
                 file = io.BytesIO(msg)
-                #print('Server', self.sid, 'receive from', addr, ' >> ', msg)
+                # print('Server', self.sid, 'receive from', addr, ' >> ', msg)
                 while True:
                     if self.exitFlag:
                         break
@@ -108,11 +117,14 @@ class server(threading.Thread):
                         elif entry[0] == 'put':
                             self.update(entry[1:])
                             timeTuple = (self.vclock, self.vclock.getTimestamp(), self.sid)
-                            clientM.sendall(pickle.dumps(timeTuple))
+                            sendAll(clientM, pickle.dumps(timeTuple), msgLength)
+                            # clientM.sendall(pickle.dumps(timeTuple))
 
                         elif entry[0] == 'get':
                             valueTuple = self.get(entry[1:])
-                            clientM.sendall(pickle.dumps(valueTuple))
+                            # print(pickle.dumps(valueTuple))
+                            sendAll(clientM, pickle.dumps(valueTuple), msgLength)
+                            # clientM.sendall(pickle.dumps(valueTuple))
 
                     except EOFError:
                         break
@@ -210,7 +222,8 @@ class server(threading.Thread):
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         s.bind((self.host, sendFromPorts[self.sid]))
         s.connect((self.host, toPort))
-        s.sendall(pickle.dumps(("writeLog", self.writeLog, self.vclock)))
+        sendAll(s, pickle.dumps(("writeLog", self.writeLog, self.vclock)), msgLength)
+        # s.sendall(pickle.dumps(("writeLog", self.writeLog, self.vclock)))
         return 0
 
     def receiveWriteLog(self):
@@ -231,7 +244,7 @@ class server(threading.Thread):
 
     def on_otherWriteLog(self,msg):
         self.receiveLock.acquire()
-        a = recvAll(msg, 4096)
+        a = recvAll(msg, msgLength)
         recvM = pickle.loads(a)
         self.antiEntropy(recvM[1], recvM[2])
         self.received = self.received +1

@@ -8,6 +8,7 @@ from vclock import vclock
 lastOpDict = {key:(sTime, sid),}
 '''
 
+msgLength = 1024
 def recvAll(socket, length):
     data = b''
     while True:
@@ -15,6 +16,13 @@ def recvAll(socket, length):
         data += packet
         if len(packet) < length:
             return data
+def sendAll(socket, data, length):
+    cnt = length
+    while cnt < len(data):
+        # print(data[(cnt - length): cnt])
+        socket.sendall(data[(cnt - length): cnt])
+        cnt += length
+    socket.sendall(data[(cnt - length): len(data)])
 
 class client(threading.Thread):
 
@@ -43,9 +51,11 @@ class client(threading.Thread):
         '''
         if not key in self.lastOpDict:
             self.lastOpDict[key] = (0, 0)
-        self.s.sendall(pickle.dumps(("get", key, self.vclock, self.lastOpDict[key])))
-        msg = recvAll(self.s, 4096)
-        #print(self.addr, "receive ", msg)
+        sendAll(self.s, pickle.dumps(("get", key, self.vclock, self.lastOpDict[key])), msgLength)
+        # self.s.sendall(pickle.dumps(("get", key, self.vclock, self.lastOpDict[key])))
+        msg = recvAll(self.s, msgLength)
+        # print(msg)
+        # print(self.addr, "receive ", msg)
         valueTuple = pickle.loads(msg)
         self.vclock.merge(valueTuple[0])
         if valueTuple[1] == "ERR_DEP" or valueTuple[1] == "ERR_KEY":
@@ -61,9 +71,9 @@ class client(threading.Thread):
         '''
         self.vclock.increment()
         insertTuple = ("put", key, value, self.vclock)
-        self.s.sendall(pickle.dumps(insertTuple))
-        msg = self.s.recv(1024)
-        #print(self.addr, "receive ", msg)
+        sendAll(self.s, pickle.dumps(insertTuple), msgLength)
+        msg = recvAll(self.s, msgLength)
+        # print(self.addr, "receive ", msg)
         timeTuple = pickle.loads(msg)
         self.vclock.merge(timeTuple[0])
         self.lastOpDict[key] = (timeTuple[1], timeTuple[2])
