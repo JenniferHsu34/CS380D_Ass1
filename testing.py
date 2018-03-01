@@ -29,19 +29,20 @@ def setup(numServers):
         joinClient(i+5, i)
 
 
-testCase = 'performance'
+testCase = 'linear_topology'
 # here you can put: 'eventualConsistency'  'read-your-write'  'monotonicReads' 'performance'
 # 'joinServer' 'killServer' 'printStore' 'joinClient' 'breakConnection' 'createConnection' 'stabilize' 'put' 'get'
+# 'linear_topology' 'long_value'
 if testCase == 'eventualConsistency':
     print ('test [eventual Consistency] property ')
     numServer = 5
     numClient = 5
     setup(numServer)
     keys = list(string.ascii_lowercase)
-
+    keys = ['a', 'b','c']
     err = 0
     gt = [['ERR_KEY'] * len(keys) for i in range(numClient)]  # ground truth
-    for i in xrange(10):
+    for i in xrange(1000):
         for j in range(numClient):
             kId, v = genPair(len(keys), 10000)
             gt[j][kId] = v
@@ -58,10 +59,53 @@ if testCase == 'eventualConsistency':
         for k in range(numClient):
             if values[k] != values[(k + 1) % numClient]:
                 err += 1
-            print 'get: ', values[k], ', ground truth is: ', values[(k + 1) % numClient]
+            #print 'get: ', values[k], ', ground truth is: ', values[(k + 1) % numClient]
+     # try to seperate it into different graph, isolate server 0
+    for i in xrange(1000):
+        for j in range(numClient):
+            kId, v = genPair(len(keys), 10000)
+            gt[j][kId] = v
+            # print 'put ', j, keys[kId], v
+            put(j+5, keys[kId], v)
 
+            get(j+5, keys[kId])
 
-    print ('Get ', err, ' mismatches. 0 err means achieve eventually consistency')
+    print 'Get ', err, ' mismatches. 0 err means achieve eventually consistency'
+    err = 0
+    breakConnection(0, 1)
+    breakConnection(0, 2)
+    breakConnection(0, 3)
+    breakConnection(0, 4)
+    stabilize()
+    print 'since we isolate server 0, prinStore of server 0 whould be different and others are the same'
+    printStore(0)
+    printStore(1)
+    printStore(2)
+    printStore(3)
+    printStore(4)
+
+    createConnection(0,1)
+    stabilize()
+    print 'Now we re-connect server 0 and server 1'
+    # after stabilize, for each key, check if the values getting from all clients are the same
+    for i in range(len(keys)):
+        values = ['None'] * numClient
+        for j in range(numClient):
+            values[j] = get(j + 5, keys[i])
+        for k in range(numClient):
+            if values[k] != values[(k + 1) % numClient]:
+                err += 1
+            # print 'get: ', values[k], ', ground truth is: ', values[(k + 1) % numClient]
+    # try to seperate it into different graph, isolate server 0
+    for i in xrange(1000):
+        for j in range(numClient):
+            kId, v = genPair(len(keys), 10000)
+            gt[j][kId] = v
+            # print 'put ', j, keys[kId], v
+            put(j + 5, keys[kId], v)
+
+            get(j + 5, keys[kId])
+    print 'Get ', err, ' mismatches. 0 err means achieve eventually consistency'
     os._exit(1)
 
 elif testCase == 'read-your-write':
@@ -190,6 +234,18 @@ elif testCase == 'killServer':
     print 'Finish test killServer. client 5 only connect to server0. Once server 0 got killed, we cant get any data from client 5'
     os._exit(1)
 
+elif testCase == 'killServer2':
+    setup(3)
+    put(5, 0, 0)
+    put(6, 0, 1)
+    put(5, 0, 2)
+    killServer(0)
+    print get(6, 0)
+    print get(5, 0)
+    #printStore(0)
+    print 'Finish test killServer. client 5 only connect to server0. Once server 0 got killed, we cant get any data from client 5'
+    os._exit(1)
+
 elif testCase == 'printStore':  # printStore
     print ('perform basic prinStore operation')
     setup(5)
@@ -292,3 +348,47 @@ elif testCase == 'get':
     setup(2)
     put(5, 'x', 0)
 
+elif testCase == 'linear_topology':
+    numServer = 5
+    numClient = 5
+    print 'we first break connection between all servers and then add one-by-one'
+    #keys = list(string.ascii_lowercase)
+    keys = ['a', 'b', 'c']
+    # create linear topology
+    setup(5)
+    for i in range(5):
+        for j in range(i+1, 5):
+            breakConnection(i, j)
+    for i in xrange(1000):
+        for j in range(numClient):
+            kId, v = genPair(len(keys), 10000)
+
+            # print 'put ', j, keys[kId], v
+            put(j+5, keys[kId], v)
+    for k in range(5):
+        for i in range(100):
+            for j in range (len(keys)):
+                kId, v = genPair(len(keys), 10000)
+                put(k+5, keys[kId], v)
+    for j in range(5):
+        print '-----------After ', j, ' times stabilize---------------- '
+        for i in range (5):
+            printStore(i)
+        if j < 4:
+            createConnection(j, j+1)
+            start = time.time()
+            stabilize()
+            end = time.time()
+            print j+1, ' time: ', end - start
+    os._exit(1)
+
+elif testCase == 'long_value':
+    v = ''
+    keys = list(string.ascii_lowercase)
+    for i in range(3500):
+        id = randint(0, len(keys) - 1)
+        v += keys[id]
+    setup(2)
+    put (5, 'x', v)
+    print get (5, 'x')
+    os._exit(1)
