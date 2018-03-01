@@ -210,7 +210,7 @@ class server(threading.Thread):
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         s.bind((self.host, sendFromPorts[self.sid]))
         s.connect((self.host, toPort))
-        s.send(pickle.dumps(("writeLog", self.writeLog, self.vclock)))
+        s.sendall(pickle.dumps(("writeLog", self.writeLog, self.vclock)))
         return 0
 
     def receiveWriteLog(self):
@@ -234,7 +234,7 @@ class server(threading.Thread):
         a = recvAll(msg, 4096)
         recvM = pickle.loads(a)
         self.antiEntropy(recvM[1], recvM[2])
-        self.received =self.received +1
+        self.received = self.received +1
         self.receiveLock.release()
 
 
@@ -242,7 +242,6 @@ class server(threading.Thread):
     def finish_receive(self, targetNum):
         while True:
             if self.received == targetNum:
-
                 self.received = 0
                 break
 
@@ -268,5 +267,5 @@ class server(threading.Thread):
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         s.bind((self.host, sendFromPorts[self.sid]))
         s.connect(toAddr)
-        s.send(pickle.dumps("exitReceive"))
+        s.sendall(pickle.dumps("exitReceive"))
         s.close()

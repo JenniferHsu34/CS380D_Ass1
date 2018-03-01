@@ -8,6 +8,14 @@ from vclock import vclock
 lastOpDict = {key:(sTime, sid),}
 '''
 
+def recvAll(socket, length):
+    data = b''
+    while True:
+        packet = socket.recv(length)
+        data += packet
+        if len(packet) < length:
+            return data
+
 class client(threading.Thread):
 
     def __init__(self, cid, cport, sport):
@@ -35,8 +43,8 @@ class client(threading.Thread):
         '''
         if not key in self.lastOpDict:
             self.lastOpDict[key] = (0, 0)
-        self.s.send(pickle.dumps(("get", key, self.vclock, self.lastOpDict[key])))
-        msg = self.s.recv(4096)
+        self.s.sendall(pickle.dumps(("get", key, self.vclock, self.lastOpDict[key])))
+        msg = recvAll(self.s, 4096)
         #print(self.addr, "receive ", msg)
         valueTuple = pickle.loads(msg)
         self.vclock.merge(valueTuple[0])
