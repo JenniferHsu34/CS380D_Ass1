@@ -29,7 +29,7 @@ def setup(numServers):
         joinClient(i+5, i)
 
 
-testCase = 'linear_topology'
+testCase = 'long_value'
 # here you can put: 'eventualConsistency'  'read-your-write'  'monotonicReads' 'performance'
 # 'joinServer' 'killServer' 'printStore' 'joinClient' 'breakConnection' 'createConnection' 'stabilize' 'put' 'get'
 # 'linear_topology' 'long_value'
@@ -284,6 +284,7 @@ elif testCase == 'breakConnection':  # test breackConnection/Connection between 
         for i in range(10):
             put(j+5, 'x', j * 10 + i)
     breakConnection(0, 1)  #
+    breakConnection(0, 1)  #
     stabilize()
 
     print 'We break the connection between s0 and s1. since server 0 and 1 do not connect. After stabilizing they do not have consistent view'
@@ -347,6 +348,7 @@ elif testCase == 'get':
     print 'test normal [get] API'
     setup(2)
     put(5, 'x', 0)
+    os._exit(1)
 
 elif testCase == 'linear_topology':
     numServer = 5

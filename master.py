@@ -112,11 +112,9 @@ def breakClientServer(cid, sid):
             clients[cid].join()
 
 def breakServers(id1, id2):
-    try:
+    if id2 in connectedSids[id1]:
         connectedSids[id1].remove(id2)
         connectedSids[id2].remove(id1)
-    except OSError:
-        pass
 
 def createConnection(id1, id2):
     # id2 should be server id
